@@ -13,7 +13,7 @@ public class HTTPMarshaller {
 
     public static String marshall(HTTPResponse response) {
         StringBuilder httpResponse = new StringBuilder();
-        httpResponse.append("HTTP/1.0 ");
+        httpResponse.append("HTTP/1.1 ");
         httpResponse.append(response.getStatusCode());
         httpResponse.append(" ");
         httpResponse.append(response.getStatusMessage());
@@ -35,13 +35,13 @@ public class HTTPMarshaller {
         String method = tokenizer.nextToken();
         String query = tokenizer.nextToken();
         String version = tokenizer.nextToken();
-        if (!version.equals("HTTP/1.0")) {
+        if (!version.equals("HTTP/1.1")) {
             throw new UnmarshalException("Not a valid HTTP version: " + version);
         }
         String inputLine;
         HashMap<String, String> headers = new HashMap<>();
         while (!(inputLine = in.readLine()).equals("")) {
-            String[] splits = inputLine.split(":");
+            String[] splits = inputLine.split(": ");
             if (splits.length != 2) {
                 throw new UnmarshalException("Not a valid HTTP header format: " + inputLine);
             }
@@ -51,7 +51,22 @@ public class HTTPMarshaller {
         while(in.ready()){
             body.append((char) in.read());
         }
-        return new HTTPRequest(method, query, version, headers, body.toString());
+
+        HashMap<String, String> queryParams = new HashMap<>();
+        try {
+            if (query.contains("?")){
+                String paramsQ = query.substring(query.indexOf("?")+1);
+                for (String key_value: paramsQ.split("&")) {
+                    String[] pair = key_value.split("=");
+                    queryParams.put(pair[0], pair[1]);
+                }
+                query = query.substring(0, query.indexOf("?"));
+            }
+        } catch (ArrayIndexOutOfBoundsException e) {
+            throw new UnmarshalException("Ill-formed parameters on: " + query);
+        }
+
+        return new HTTPRequest(method, query, queryParams, version, headers, body.toString());
     }
 
 }

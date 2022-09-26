@@ -8,7 +8,7 @@ public class Sloth {
     private final HTTPInvoker invoker = new HTTPInvoker();
 
     public void init(int port) {
-        ServerRequestHandler.init(port);
+        ServerRequestHandler.init(port, invoker);
     }
 
     public void register(Object object) {
