@@ -3,7 +3,8 @@ package sloth.basic.invoker;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.drapostolos.typeparser.TypeParser;
 import com.github.drapostolos.typeparser.TypeParserException;
-import sloth.basic.util.MethodObjPair;
+import sloth.basic.http.MethodHTTP;
+import sloth.basic.util.RouteInfo;
 import sloth.basic.annotations.*;
 import sloth.basic.error.NotFoundException;
 import sloth.basic.error.RemotingException;
@@ -20,23 +21,25 @@ public class HTTPInvoker implements Invoker<HTTPRequest, HTTPResponse>{
 
     private final ObjectMapper mapper = new ObjectMapper();
     private final TypeParser parser = TypeParser.newBuilder().build();
-    private final ConcurrentHashMap<String, MethodObjPair> gets = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, MethodObjPair> posts = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, MethodObjPair> puts = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, MethodObjPair> deletes = new ConcurrentHashMap<>();
+    // Trocar ordem das consultas
+    // rotas como chave, lista de Verbos como valor
+    private final ConcurrentHashMap<String, List<RouteInfo>> routes = new ConcurrentHashMap<>();
 
     @Override
     public HTTPResponse invoke(HTTPRequest request) throws RemotingException {
         try {
-            ConcurrentHashMap<String, MethodObjPair> routes = switch (request.getMethod()) {
-                case "GET" -> gets;
-                case "POST" -> posts;
-                case "PUT" -> puts;
-                case "DELETE" -> deletes;
-                // case OPTIONS -> Como fazer esse?
-                default -> throw new RemotingException("Method: " + request.getMethod() + " not supported");
-            };
-            return execute(findMethod(routes, request.getQuery(), request.getMethod()), request);
+            List<RouteInfo> methods = routes.get(request.getQuery());
+            if (methods == null || methods.isEmpty()) {
+                throw new NotFoundException("Route : " + request.getQuery() + " not found");
+            }
+            Optional<RouteInfo> found = methods
+                .stream()
+                .filter(routeInfo -> routeInfo.verb().equals(request.getMethod()))
+                .findFirst();
+            if (found.isEmpty()) {
+                throw new NotFoundException("Method: " + request.getMethod() + " not supported on " + request.getQuery());
+            }
+            return execute(found.get(), request);
         } catch (NotFoundException e) {
             return new HTTPResponse("HTTP/1.1",404, "Not Found",
                     // TODO: fazer um html de fato
@@ -44,7 +47,7 @@ public class HTTPInvoker implements Invoker<HTTPRequest, HTTPResponse>{
         }
     }
 
-    private MethodObjPair findMethod(ConcurrentHashMap<String, MethodObjPair> target, String query, String verb) throws RemotingException {
+    private RouteInfo findMethod(ConcurrentHashMap<String, RouteInfo> target, String query, String verb) throws RemotingException {
         if (target.containsKey(query)) {
             return target.get(query);
         } else {
@@ -52,7 +55,7 @@ public class HTTPInvoker implements Invoker<HTTPRequest, HTTPResponse>{
         }
     }
 
-    public HTTPResponse execute(MethodObjPair pair, HTTPRequest request) throws RemotingException {
+    public HTTPResponse execute(RouteInfo pair, HTTPRequest request) throws RemotingException {
         try {
             List<Object> params = new ArrayList<>();
             for (Parameter p : pair.method().getParameters()) {
@@ -84,26 +87,35 @@ public class HTTPInvoker implements Invoker<HTTPRequest, HTTPResponse>{
         Class<?> clazz = object.getClass();
         if (clazz.isAnnotationPresent(RequestMapping.class)) {
             for (Method method : clazz.getDeclaredMethods()) {
+                // TODO: simplificar cadastro de rotas e verbos
                 if (method.isAnnotationPresent(Get.class)) {
                     method.setAccessible(true);
-                    gets.put("/"+clazz.getAnnotation(RequestMapping.class).router()
-                            + "/" + method.getAnnotation(Get.class).router()
-                    , new MethodObjPair(method, object));
+                    List<RouteInfo> methods = routes.getOrDefault("/"+clazz.getAnnotation(RequestMapping.class).router()
+                            + "/" + method.getAnnotation(Get.class).router(), new ArrayList<>());
+                    methods.add(new RouteInfo(MethodHTTP.GET, method, object));
+                    routes.put("/"+clazz.getAnnotation(RequestMapping.class).router()
+                            + "/" + method.getAnnotation(Get.class).router(), methods);
                 } else if (method.isAnnotationPresent(Post.class)) {
                     method.setAccessible(true);
-                    posts.put("/"+clazz.getAnnotation(RequestMapping.class).router()
-                            + "/" + method.getAnnotation(Post.class).router()
-                            , new MethodObjPair(method, object));
+                    List<RouteInfo> methods = routes.getOrDefault("/"+clazz.getAnnotation(RequestMapping.class).router()
+                            + "/" + method.getAnnotation(Post.class).router(), new ArrayList<>());
+                    methods.add(new RouteInfo(MethodHTTP.POST, method, object));
+                    routes.put("/"+clazz.getAnnotation(RequestMapping.class).router()
+                            + "/" + method.getAnnotation(Post.class).router(), methods);
                 } else if (method.isAnnotationPresent(Put.class)) {
                     method.setAccessible(true);
-                    puts.put("/"+clazz.getAnnotation(RequestMapping.class).router()
-                            + "/" + method.getAnnotation(Put.class).router()
-                            , new MethodObjPair(method, object));
+                    List<RouteInfo> methods = routes.getOrDefault("/"+clazz.getAnnotation(RequestMapping.class).router()
+                            + "/" + method.getAnnotation(Put.class).router(), new ArrayList<>());
+                    methods.add(new RouteInfo(MethodHTTP.PUT, method, object));
+                    routes.put("/"+clazz.getAnnotation(RequestMapping.class).router()
+                            + "/" + method.getAnnotation(Put.class).router(), methods);
                 } else if (method.isAnnotationPresent(Delete.class)) {
                     method.setAccessible(true);
-                    deletes.put("/"+clazz.getAnnotation(RequestMapping.class).router()
-                              + "/" + method.getAnnotation(Delete.class).router()
-                            , new MethodObjPair(method, object));
+                    List<RouteInfo> methods = routes.getOrDefault("/"+clazz.getAnnotation(RequestMapping.class).router()
+                            + "/" + method.getAnnotation(Delete.class).router(), new ArrayList<>());
+                    methods.add(new RouteInfo(MethodHTTP.DELETE, method, object));
+                    routes.put("/"+clazz.getAnnotation(RequestMapping.class).router()
+                            + "/" + method.getAnnotation(Delete.class).router(), methods);
                 }
             }
         }

@@ -2,6 +2,7 @@ package sloth.basic.marshaller;
 
 import sloth.basic.http.HTTPRequest;
 import sloth.basic.http.HTTPResponse;
+import sloth.basic.http.MethodHTTP;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -66,7 +67,7 @@ public class HTTPMarshaller {
             throw new UnmarshalException("Ill-formed parameters on: " + query);
         }
 
-        return new HTTPRequest(method, query, queryParams, version, headers, body.toString());
+        return new HTTPRequest(MethodHTTP.valueOf(method), query, queryParams, version, headers, body.toString());
     }
 
 }
