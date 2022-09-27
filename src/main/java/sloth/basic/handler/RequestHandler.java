@@ -37,8 +37,12 @@ public class RequestHandler implements Runnable {
                 HTTPResponse response = HTTPErrorResponseBuilder.build(400, e);
                 String responseString = HTTPMarshaller.marshall(response);
                 out.write(responseString);
+            } catch (Exception e) {
+                HTTPResponse response = HTTPErrorResponseBuilder.build(500, e);
+                String responseString = HTTPMarshaller.marshall(response);
+                out.write(responseString);
             }
-
+            out.flush();
         } catch (Exception e) {
             e.printStackTrace();
         } finally {

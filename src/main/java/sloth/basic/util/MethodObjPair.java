@@ -1,4 +1,4 @@
-package sloth.basic;
+package sloth.basic.util;
 
 import java.lang.reflect.Method;
 
