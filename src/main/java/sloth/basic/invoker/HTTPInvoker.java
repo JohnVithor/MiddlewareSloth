@@ -1,9 +1,10 @@
 package sloth.basic.invoker;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.drapostolos.typeparser.TypeParser;
 import com.github.drapostolos.typeparser.TypeParserException;
-import sloth.basic.http.MethodHTTP;
 import sloth.basic.util.RouteInfo;
 import sloth.basic.annotations.*;
 import sloth.basic.error.NotFoundException;
@@ -21,8 +22,6 @@ public class HTTPInvoker implements Invoker<HTTPRequest, HTTPResponse>{
 
     private final ObjectMapper mapper = new ObjectMapper();
     private final TypeParser parser = TypeParser.newBuilder().build();
-    // Trocar ordem das consultas
-    // rotas como chave, lista de Verbos como valor
     private final ConcurrentHashMap<String, List<RouteInfo>> routes = new ConcurrentHashMap<>();
 
     @Override
@@ -55,10 +54,10 @@ public class HTTPInvoker implements Invoker<HTTPRequest, HTTPResponse>{
         }
     }
 
-    public HTTPResponse execute(RouteInfo pair, HTTPRequest request) throws RemotingException {
+    public HTTPResponse execute(RouteInfo info, HTTPRequest request) throws RemotingException {
         try {
             List<Object> params = new ArrayList<>();
-            for (Parameter p : pair.method().getParameters()) {
+            for (Parameter p : info.method().getParameters()) {
                 if (p.isAnnotationPresent(Param.class)) {
                     String name = p.getAnnotation(Param.class).name();
                     String value = request.getQueryParams().get(name);
@@ -66,18 +65,26 @@ public class HTTPInvoker implements Invoker<HTTPRequest, HTTPResponse>{
                         throw new RemotingException("parameter " + name + " not specified");
                     }
                     params.add(parser.parse(value, p.getType()));
+                } else if (p.isAnnotationPresent(Body.class)) {
+                    try {
+                        params.add(mapper.readValue(request.getBody(), p.getType()));
+                    } catch (Exception e) {
+                        params.add(parser.parse(request.getBody(), p.getType()));
+                    }
                 } else {
                     throw new RemotingException("parameter " + p.getName() + "not annotated");
                 }
             }
-            String response = String.valueOf(pair.method().invoke(pair.obj(), params.toArray()));
+            String response = mapper.writeValueAsString(info.method().invoke(info.obj(), params.toArray()));
             return new HTTPResponse("HTTP/1.1",200, "OK",
-                    HTTPResponse.buildBasicHeaders(response), response);
+                    HTTPResponse.buildBasicHeaders(response, info.content_type()), response);
         } catch (IllegalAccessException e) {
             throw new RemotingException(e.getMessage());
         } catch (InvocationTargetException e) {
             throw new RemotingException(e.getMessage());
         } catch (TypeParserException e) {
+            throw new RemotingException(e.getMessage());
+        } catch (JsonProcessingException e) {
             throw new RemotingException(e.getMessage());
         }
     }
@@ -87,35 +94,18 @@ public class HTTPInvoker implements Invoker<HTTPRequest, HTTPResponse>{
         Class<?> clazz = object.getClass();
         if (clazz.isAnnotationPresent(RequestMapping.class)) {
             for (Method method : clazz.getDeclaredMethods()) {
-                // TODO: simplificar cadastro de rotas e verbos
-                if (method.isAnnotationPresent(Get.class)) {
+                if (method.isAnnotationPresent(MethodMapping.class)) {
+                    MethodMapping annot = method.getAnnotation(MethodMapping.class);
                     method.setAccessible(true);
-                    List<RouteInfo> methods = routes.getOrDefault("/"+clazz.getAnnotation(RequestMapping.class).router()
-                            + "/" + method.getAnnotation(Get.class).router(), new ArrayList<>());
-                    methods.add(new RouteInfo(MethodHTTP.GET, method, object));
-                    routes.put("/"+clazz.getAnnotation(RequestMapping.class).router()
-                            + "/" + method.getAnnotation(Get.class).router(), methods);
-                } else if (method.isAnnotationPresent(Post.class)) {
-                    method.setAccessible(true);
-                    List<RouteInfo> methods = routes.getOrDefault("/"+clazz.getAnnotation(RequestMapping.class).router()
-                            + "/" + method.getAnnotation(Post.class).router(), new ArrayList<>());
-                    methods.add(new RouteInfo(MethodHTTP.POST, method, object));
-                    routes.put("/"+clazz.getAnnotation(RequestMapping.class).router()
-                            + "/" + method.getAnnotation(Post.class).router(), methods);
-                } else if (method.isAnnotationPresent(Put.class)) {
-                    method.setAccessible(true);
-                    List<RouteInfo> methods = routes.getOrDefault("/"+clazz.getAnnotation(RequestMapping.class).router()
-                            + "/" + method.getAnnotation(Put.class).router(), new ArrayList<>());
-                    methods.add(new RouteInfo(MethodHTTP.PUT, method, object));
-                    routes.put("/"+clazz.getAnnotation(RequestMapping.class).router()
-                            + "/" + method.getAnnotation(Put.class).router(), methods);
-                } else if (method.isAnnotationPresent(Delete.class)) {
-                    method.setAccessible(true);
-                    List<RouteInfo> methods = routes.getOrDefault("/"+clazz.getAnnotation(RequestMapping.class).router()
-                            + "/" + method.getAnnotation(Delete.class).router(), new ArrayList<>());
-                    methods.add(new RouteInfo(MethodHTTP.DELETE, method, object));
-                    routes.put("/"+clazz.getAnnotation(RequestMapping.class).router()
-                            + "/" + method.getAnnotation(Delete.class).router(), methods);
+                    String route;
+                    if (annot.path().equals("")) {
+                        route = "/"+clazz.getAnnotation(RequestMapping.class).path();
+                    } else {
+                        route = "/"+clazz.getAnnotation(RequestMapping.class).path() + "/" + annot.path();
+                    }
+                    List<RouteInfo> methods = routes.getOrDefault(route, new ArrayList<>());
+                    methods.add(new RouteInfo(annot.method(), annot.content_type(), method, object));
+                    routes.put(route, methods);
                 }
             }
         }

@@ -1,5 +1,7 @@
 package sloth.basic.http;
 
+import sloth.basic.util.RouteInfo;
+
 import java.util.HashMap;
 
 public class HTTPResponse {
@@ -59,6 +61,13 @@ public class HTTPResponse {
     public static HashMap<String, String> buildBasicHeaders(String body) {
         HashMap<String, String> headers = new HashMap<>();
         headers.put("Content-Type", "text/html; charset=utf-8");
+        headers.put("Content-Length", String.valueOf(body.length()));
+        return headers;
+    }
+
+    public static HashMap<String, String> buildBasicHeaders(String body, String content_type) {
+        HashMap<String, String> headers = new HashMap<>();
+        headers.put("Content-Type", content_type);
         headers.put("Content-Length", String.valueOf(body.length()));
         return headers;
     }
