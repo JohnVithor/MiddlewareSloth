@@ -5,6 +5,8 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.drapostolos.typeparser.TypeParser;
 import com.github.drapostolos.typeparser.TypeParserException;
+import sloth.basic.error.BadRequestException;
+import sloth.basic.error.HTTPErrorResponseBuilder;
 import sloth.basic.util.RouteInfo;
 import sloth.basic.annotations.*;
 import sloth.basic.error.NotFoundException;
@@ -26,32 +28,18 @@ public class HTTPInvoker implements Invoker<HTTPRequest, HTTPResponse>{
 
     @Override
     public HTTPResponse invoke(HTTPRequest request) throws RemotingException {
-        try {
-            List<RouteInfo> methods = routes.get(request.getQuery());
-            if (methods == null || methods.isEmpty()) {
-                throw new NotFoundException("Route : " + request.getQuery() + " not found");
-            }
-            Optional<RouteInfo> found = methods
-                .stream()
-                .filter(routeInfo -> routeInfo.verb().equals(request.getMethod()))
-                .findFirst();
-            if (found.isEmpty()) {
-                throw new NotFoundException("Method: " + request.getMethod() + " not supported on " + request.getQuery());
-            }
-            return execute(found.get(), request);
-        } catch (NotFoundException e) {
-            return new HTTPResponse("HTTP/1.1",404, "Not Found",
-                    // TODO: fazer um html de fato
-                    HTTPResponse.buildBasicHeaders(e.getMessage()), e.getMessage());
+        List<RouteInfo> methods = routes.get(request.getQuery());
+        if (methods == null || methods.isEmpty()) {
+            throw new NotFoundException("Route : " + request.getQuery() + " not found");
         }
-    }
-
-    private RouteInfo findMethod(ConcurrentHashMap<String, RouteInfo> target, String query, String verb) throws RemotingException {
-        if (target.containsKey(query)) {
-            return target.get(query);
-        } else {
-            throw new NotFoundException("The path " + query + " was not found on the server for the verb " + verb);
+        Optional<RouteInfo> found = methods
+            .stream()
+            .filter(routeInfo -> routeInfo.verb().equals(request.getMethod()))
+            .findFirst();
+        if (found.isEmpty()) {
+            throw new BadRequestException("Method: " + request.getMethod() + " not supported on " + request.getQuery());
         }
+        return execute(found.get(), request);
     }
 
     public HTTPResponse execute(RouteInfo info, HTTPRequest request) throws RemotingException {
@@ -83,9 +71,9 @@ public class HTTPInvoker implements Invoker<HTTPRequest, HTTPResponse>{
         } catch (InvocationTargetException e) {
             throw new RemotingException(e.getMessage());
         } catch (TypeParserException e) {
-            throw new RemotingException(e.getMessage());
+            throw new BadRequestException(e.getMessage());
         } catch (JsonProcessingException e) {
-            throw new RemotingException(e.getMessage());
+            throw new BadRequestException(e.getMessage());
         }
     }
 

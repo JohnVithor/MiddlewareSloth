@@ -1,6 +1,8 @@
 package sloth.basic.handler;
 
+import sloth.basic.error.BadRequestException;
 import sloth.basic.error.HTTPErrorResponseBuilder;
+import sloth.basic.error.NotFoundException;
 import sloth.basic.error.RemotingException;
 import sloth.basic.http.HTTPRequest;
 import sloth.basic.http.HTTPResponse;
@@ -28,20 +30,19 @@ public class RequestHandler implements Runnable {
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()))
         ) {
+            HTTPResponse response;
             try {
                 HTTPRequest request = HTTPMarshaller.unmarshall(in);
-                HTTPResponse response = invoker.invoke(request);
-                String responseString = HTTPMarshaller.marshall(response);
-                out.write(responseString);
-            } catch (RemotingException e) {
-                HTTPResponse response = HTTPErrorResponseBuilder.build(400, e);
-                String responseString = HTTPMarshaller.marshall(response);
-                out.write(responseString);
+                response = invoker.invoke(request);
+            } catch (UnmarshalException | BadRequestException e) {
+                response = HTTPErrorResponseBuilder.build(400, e.getMessage());
+            } catch (NotFoundException e) {
+                response = HTTPErrorResponseBuilder.build(404, e.getMessage());
             } catch (Exception e) {
-                HTTPResponse response = HTTPErrorResponseBuilder.build(500, e);
-                String responseString = HTTPMarshaller.marshall(response);
-                out.write(responseString);
+                response = HTTPErrorResponseBuilder.build(500, e.getMessage());
             }
+            String responseString = HTTPMarshaller.marshall(response);
+            out.write(responseString);
             out.flush();
         } catch (Exception e) {
             e.printStackTrace();
