@@ -33,7 +33,9 @@ public class RequestHandler implements Runnable {
             HTTPResponse response;
             try {
                 HTTPRequest request = HTTPMarshaller.unmarshall(in);
+                invoker.beforeInvoke(request);
                 response = invoker.invoke(request);
+                invoker.afterInvoke(response);
             } catch (UnmarshalException | BadRequestException e) {
                 response = HTTPErrorResponseBuilder.build(400, e.getMessage());
             } catch (NotFoundException e) {

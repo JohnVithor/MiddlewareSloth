@@ -54,7 +54,7 @@ public class HTTPResponse {
         return switch (statusCode) {
             case 200 -> "OK";
             case 400 -> "Bad Request";
-            default -> "Unknown";
+            default -> "Internal Server Error";
         };
     }
 

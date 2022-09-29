@@ -1,4 +1,4 @@
-package sloth.basic.annotations;
+package sloth.basic.annotations.route;
 
 import sloth.basic.http.MethodHTTP;
 

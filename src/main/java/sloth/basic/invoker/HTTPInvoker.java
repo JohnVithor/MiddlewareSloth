@@ -1,14 +1,15 @@
 package sloth.basic.invoker;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.drapostolos.typeparser.TypeParser;
 import com.github.drapostolos.typeparser.TypeParserException;
+import sloth.basic.annotations.route.Body;
+import sloth.basic.annotations.route.MethodMapping;
+import sloth.basic.annotations.route.Param;
+import sloth.basic.annotations.route.RequestMapping;
 import sloth.basic.error.BadRequestException;
-import sloth.basic.error.HTTPErrorResponseBuilder;
 import sloth.basic.util.RouteInfo;
-import sloth.basic.annotations.*;
 import sloth.basic.error.NotFoundException;
 import sloth.basic.error.RemotingException;
 import sloth.basic.http.HTTPRequest;
@@ -22,9 +23,24 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class HTTPInvoker implements Invoker<HTTPRequest, HTTPResponse>{
 
+    private final TreeSet<InvocationInterceptor> hooks = new TreeSet<>();
     private final ObjectMapper mapper = new ObjectMapper();
     private final TypeParser parser = TypeParser.newBuilder().build();
     private final ConcurrentHashMap<String, List<RouteInfo>> routes = new ConcurrentHashMap<>();
+
+    @Override
+    public void beforeInvoke(HTTPRequest request) throws RemotingException {
+        for (InvocationInterceptor e: hooks ) {
+            e.beforeRequest(request);
+        }
+    }
+
+    @Override
+    public void afterInvoke(HTTPResponse response) throws RemotingException {
+        for (InvocationInterceptor e: hooks ) {
+            e.afterResponse(response);
+        }
+    }
 
     @Override
     public HTTPResponse invoke(HTTPRequest request) throws RemotingException {
@@ -78,7 +94,7 @@ public class HTTPInvoker implements Invoker<HTTPRequest, HTTPResponse>{
     }
 
     @Override
-    public void register(Object object) {
+    public void registerRoutes(Object object) {
         Class<?> clazz = object.getClass();
         if (clazz.isAnnotationPresent(RequestMapping.class)) {
             for (Method method : clazz.getDeclaredMethods()) {
@@ -97,5 +113,10 @@ public class HTTPInvoker implements Invoker<HTTPRequest, HTTPResponse>{
                 }
             }
         }
+    }
+
+    @Override
+    public void registerConf(InvocationInterceptor conf) {
+        hooks.add(conf);
     }
 }
