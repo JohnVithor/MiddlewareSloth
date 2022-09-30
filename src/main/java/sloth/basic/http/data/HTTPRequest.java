@@ -1,4 +1,4 @@
-package sloth.basic.http;
+package sloth.basic.http.data;
 
 import java.util.HashMap;
 import java.util.Map;

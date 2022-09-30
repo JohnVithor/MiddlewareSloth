@@ -1,4 +1,4 @@
-package sloth.basic.http;
+package sloth.basic.http.data;
 
 public enum MethodHTTP {
     GET("GET"),

@@ -1,4 +1,6 @@
-package sloth.basic.error.exceptions;
+package sloth.basic.http.error;
+
+import sloth.basic.error.RemotingException;
 
 public class MethodNotAllowedException extends RemotingException {
     public MethodNotAllowedException(String message) {

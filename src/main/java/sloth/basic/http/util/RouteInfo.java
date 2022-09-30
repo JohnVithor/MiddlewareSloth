@@ -1,6 +1,6 @@
-package sloth.basic.util;
+package sloth.basic.http.util;
 
-import sloth.basic.http.MethodHTTP;
+import sloth.basic.http.data.MethodHTTP;
 
 import java.lang.reflect.Method;
 

@@ -1,12 +1,12 @@
 package sloth.basic;
 
-import sloth.basic.error.HTTPErrorHandler;
+import sloth.basic.http.error.HTTPErrorHandler;
 import sloth.basic.handler.ServerRequestHandler;
-import sloth.basic.http.HTTPRequest;
-import sloth.basic.http.HTTPResponse;
+import sloth.basic.http.data.HTTPRequest;
+import sloth.basic.http.data.HTTPResponse;
 import sloth.basic.invoker.InvocationInterceptor;
-import sloth.basic.invoker.HTTPInvoker;
-import sloth.basic.marshaller.HTTPMarshaller;
+import sloth.basic.http.HTTPInvoker;
+import sloth.basic.http.HTTPMarshaller;
 
 public class Sloth {
 

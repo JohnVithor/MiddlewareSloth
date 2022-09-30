@@ -1,9 +1,10 @@
-package sloth.basic.error;
+package sloth.basic.http.error;
 
-import sloth.basic.error.exceptions.RemotingException;
-import sloth.basic.http.HTTPResponse;
+import sloth.basic.error.ErrorHandler;
+import sloth.basic.error.RemotingException;
+import sloth.basic.http.data.HTTPResponse;
 
-public class HTTPErrorHandler implements ErrorHandler<HTTPResponse>{
+public class HTTPErrorHandler implements ErrorHandler<HTTPResponse> {
 
     public HTTPResponse build(RemotingException e) {
         return new HTTPResponse(

@@ -1,6 +1,4 @@
-package sloth.basic.http;
-
-import sloth.basic.util.RouteInfo;
+package sloth.basic.http.data;
 
 import java.util.HashMap;
 

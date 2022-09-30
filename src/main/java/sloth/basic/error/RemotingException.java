@@ -1,4 +1,4 @@
-package sloth.basic.error.exceptions;
+package sloth.basic.error;
 
 public class RemotingException extends Exception {
     private final int status;

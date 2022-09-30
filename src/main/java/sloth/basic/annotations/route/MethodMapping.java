@@ -1,6 +1,6 @@
 package sloth.basic.annotations.route;
 
-import sloth.basic.http.MethodHTTP;
+import sloth.basic.http.data.MethodHTTP;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

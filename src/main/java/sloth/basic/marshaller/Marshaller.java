@@ -1,6 +1,6 @@
 package sloth.basic.marshaller;
 
-import sloth.basic.error.exceptions.UnmarshalException;
+import sloth.basic.http.error.UnmarshalException;
 
 import java.io.BufferedReader;
 import java.io.IOException;

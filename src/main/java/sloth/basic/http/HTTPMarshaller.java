@@ -1,9 +1,10 @@
-package sloth.basic.marshaller;
+package sloth.basic.http;
 
-import sloth.basic.error.exceptions.UnmarshalException;
-import sloth.basic.http.HTTPRequest;
-import sloth.basic.http.HTTPResponse;
-import sloth.basic.http.MethodHTTP;
+import sloth.basic.http.error.UnmarshalException;
+import sloth.basic.http.data.HTTPRequest;
+import sloth.basic.http.data.HTTPResponse;
+import sloth.basic.http.data.MethodHTTP;
+import sloth.basic.marshaller.Marshaller;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -12,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
 
-public class HTTPMarshaller implements Marshaller<HTTPRequest, HTTPResponse>{
+public class HTTPMarshaller implements Marshaller<HTTPRequest, HTTPResponse> {
 
     public String marshall(HTTPResponse response) {
         StringBuilder httpResponse = new StringBuilder();

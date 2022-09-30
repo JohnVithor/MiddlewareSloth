@@ -1,7 +1,6 @@
 package sloth.basic.handler;
 
 import sloth.basic.error.ErrorHandler;
-import sloth.basic.invoker.HTTPInvoker;
 import sloth.basic.invoker.Invoker;
 import sloth.basic.marshaller.Marshaller;
 

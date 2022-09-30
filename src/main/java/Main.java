@@ -3,12 +3,12 @@ import sloth.basic.annotations.route.Body;
 import sloth.basic.annotations.route.MethodMapping;
 import sloth.basic.annotations.route.RequestMapping;
 import sloth.basic.annotations.route.Param;
-import sloth.basic.error.exceptions.RemotingException;
-import sloth.basic.http.HTTPRequest;
-import sloth.basic.http.HTTPResponse;
-import sloth.basic.http.MethodHTTP;
+import sloth.basic.error.RemotingException;
+import sloth.basic.http.data.HTTPRequest;
+import sloth.basic.http.data.HTTPResponse;
+import sloth.basic.http.data.MethodHTTP;
 import sloth.basic.invoker.InvocationInterceptor;
-import sloth.basic.util.ContentType;
+import sloth.basic.http.data.ContentType;
 
 public class Main {
 
