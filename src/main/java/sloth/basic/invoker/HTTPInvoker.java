@@ -9,6 +9,7 @@ import sloth.basic.annotations.route.MethodMapping;
 import sloth.basic.annotations.route.Param;
 import sloth.basic.annotations.route.RequestMapping;
 import sloth.basic.error.BadRequestException;
+import sloth.basic.error.InternalServerErrorException;
 import sloth.basic.util.RouteInfo;
 import sloth.basic.error.NotFoundException;
 import sloth.basic.error.RemotingException;
@@ -30,15 +31,15 @@ public class HTTPInvoker implements Invoker<HTTPRequest, HTTPResponse>{
 
     @Override
     public void beforeInvoke(HTTPRequest request) throws RemotingException {
-        for (InvocationInterceptor e: hooks ) {
+        for (InvocationInterceptor e: hooks) {
             e.beforeRequest(request);
         }
     }
 
     @Override
-    public void afterInvoke(HTTPResponse response) throws RemotingException {
-        for (InvocationInterceptor e: hooks ) {
-            e.afterResponse(response);
+    public void afterInvoke(HTTPRequest request, HTTPResponse response) throws RemotingException {
+        for (InvocationInterceptor e: hooks) {
+            e.afterResponse(request, response);
         }
     }
 
@@ -66,29 +67,32 @@ public class HTTPInvoker implements Invoker<HTTPRequest, HTTPResponse>{
                     String name = p.getAnnotation(Param.class).name();
                     String value = request.getQueryParams().get(name);
                     if (value == null) {
-                        throw new RemotingException("parameter " + name + " not specified");
+                        throw new BadRequestException("parameter " + name + " not specified");
                     }
                     params.add(parser.parse(value, p.getType()));
                 } else if (p.isAnnotationPresent(Body.class)) {
-                    try {
+                    // Antes usava try-catch, e não tinha esse if do content-type
+                    if (info.content_type().contains("application/json")) {
                         params.add(mapper.readValue(request.getBody(), p.getType()));
-                    } catch (Exception e) {
+                    } else {
                         params.add(parser.parse(request.getBody(), p.getType()));
                     }
                 } else {
-                    throw new RemotingException("parameter " + p.getName() + "not annotated");
+                    // TODO: mover caso para o momento de registro do método
+                    // temporariamente será assumido que o parametro irá como null
+                    params.add(null);
+//                    throw new BadRequestException("parameter " + p.getName() + "not annotated");
                 }
             }
             String response = mapper.writeValueAsString(info.method().invoke(info.obj(), params.toArray()));
             return new HTTPResponse("HTTP/1.1",200, "OK",
                     HTTPResponse.buildBasicHeaders(response, info.content_type()), response);
         } catch (IllegalAccessException e) {
-            throw new RemotingException(e.getMessage());
+            // teoricamente não pode acontecer, dado que o acesso ao método foi setado como true
+            throw new InternalServerErrorException(e.getMessage());
         } catch (InvocationTargetException e) {
-            throw new RemotingException(e.getMessage());
-        } catch (TypeParserException e) {
-            throw new BadRequestException(e.getMessage());
-        } catch (JsonProcessingException e) {
+            throw new InternalServerErrorException(e.getMessage());
+        } catch (TypeParserException | JsonProcessingException e) {
             throw new BadRequestException(e.getMessage());
         }
     }

@@ -4,15 +4,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class HTTPRequest {
+    private final String requestor;
     private final MethodHTTP method;
     private final String query;
-
     private final Map<String, String> queryParams;
     private final String version;
     private final HashMap<String, String> headers;
     private final String body;
 
-    public HTTPRequest(MethodHTTP method, String query, Map<String, String> queryParams, String version, HashMap<String, String> headers, String body) {
+    public HTTPRequest(String requestor, MethodHTTP method, String query, Map<String, String> queryParams, String version, HashMap<String, String> headers, String body) {
+        this.requestor = requestor;
         this.method = method;
         this.query = query;
         this.queryParams = queryParams;

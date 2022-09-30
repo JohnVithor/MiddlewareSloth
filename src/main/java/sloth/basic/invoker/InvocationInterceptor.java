@@ -10,7 +10,7 @@ public interface InvocationInterceptor extends Comparable<InvocationInterceptor>
 
     void beforeRequest(HTTPRequest request) throws RemotingException;
 
-    void afterResponse(HTTPResponse response) throws RemotingException;
+    void afterResponse(HTTPRequest request, HTTPResponse response) throws RemotingException;
 
     default int compareTo(InvocationInterceptor o) {
         return Integer.compare(getPriority(), o.getPriority());

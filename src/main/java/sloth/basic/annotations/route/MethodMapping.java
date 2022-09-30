@@ -12,5 +12,5 @@ import java.lang.annotation.Target;
 public @interface MethodMapping {
     MethodHTTP method();
     String path() default "";
-    String content_type() default "application/json";
+    String content_type() default "application/json;";
 }

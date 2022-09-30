@@ -6,13 +6,14 @@ import sloth.basic.http.MethodHTTP;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
 
-public class HTTPMarshaller {
+public class HTTPMarshaller implements Marshaller<HTTPRequest, HTTPResponse>{
 
-    public static String marshall(HTTPResponse response) {
+    public String marshall(HTTPResponse response) {
         StringBuilder httpResponse = new StringBuilder();
         httpResponse.append("HTTP/1.1 ");
         httpResponse.append(response.getStatusCode());
@@ -30,7 +31,7 @@ public class HTTPMarshaller {
         return httpResponse.toString();
     }
 
-    public static HTTPRequest unmarshall(BufferedReader in) throws IOException, UnmarshalException {
+    public HTTPRequest unmarshall(BufferedReader in, InetAddress address) throws IOException, UnmarshalException {
         String headerLine = in.readLine();
         StringTokenizer tokenizer = new StringTokenizer(headerLine);
         String method = tokenizer.nextToken();
@@ -67,7 +68,7 @@ public class HTTPMarshaller {
             throw new UnmarshalException("Ill-formed parameters on: " + query);
         }
 
-        return new HTTPRequest(MethodHTTP.valueOf(method), query, queryParams, version, headers, body.toString());
+        return new HTTPRequest(address.getHostAddress(), MethodHTTP.valueOf(method), query, queryParams, version, headers, body.toString());
     }
 
 }

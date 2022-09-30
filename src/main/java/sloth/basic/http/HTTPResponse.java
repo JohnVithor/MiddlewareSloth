@@ -60,7 +60,7 @@ public class HTTPResponse {
 
     public static HashMap<String, String> buildBasicHeaders(String body) {
         HashMap<String, String> headers = new HashMap<>();
-        headers.put("Content-Type", "text/html; charset=utf-8");
+        headers.put("Content-Type", "text/html");
         headers.put("Content-Length", String.valueOf(body.length()));
         return headers;
     }

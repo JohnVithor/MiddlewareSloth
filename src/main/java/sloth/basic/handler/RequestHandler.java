@@ -1,27 +1,27 @@
 package sloth.basic.handler;
 
-import sloth.basic.error.BadRequestException;
-import sloth.basic.error.HTTPErrorResponseBuilder;
-import sloth.basic.error.NotFoundException;
-import sloth.basic.error.RemotingException;
-import sloth.basic.http.HTTPRequest;
-import sloth.basic.http.HTTPResponse;
-import sloth.basic.invoker.HTTPInvoker;
+import sloth.basic.error.*;
 import sloth.basic.invoker.Invoker;
-import sloth.basic.marshaller.HTTPMarshaller;
-import sloth.basic.marshaller.UnmarshalException;
+import sloth.basic.marshaller.Marshaller;
 
 import java.io.*;
 import java.net.Socket;
 
-public class RequestHandler implements Runnable {
+public class RequestHandler<Request, Response> implements Runnable {
 
     private final Socket socket;
-    private final HTTPInvoker invoker;
+    private final Marshaller<Request, Response> marshaller;
+    private final Invoker<Request, Response> invoker;
+    private final ErrorHandler<Response> errorHandler;
 
-    public RequestHandler(Socket socket, HTTPInvoker invoker) {
+    public RequestHandler(Socket socket,
+                          Marshaller<Request, Response> marshaller,
+                          Invoker<Request, Response> invoker,
+                          ErrorHandler<Response> errorHandler) {
         this.socket = socket;
         this.invoker = invoker;
+        this.marshaller = marshaller;
+        this.errorHandler = errorHandler;
     }
 
     @Override
@@ -30,20 +30,22 @@ public class RequestHandler implements Runnable {
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()))
         ) {
-            HTTPResponse response;
+            Response response;
+            Request request = null;
             try {
-                HTTPRequest request = HTTPMarshaller.unmarshall(in);
+                request = marshaller.unmarshall(in, socket.getInetAddress());
                 invoker.beforeInvoke(request);
                 response = invoker.invoke(request);
-                invoker.afterInvoke(response);
-            } catch (UnmarshalException | BadRequestException e) {
-                response = HTTPErrorResponseBuilder.build(400, e.getMessage());
-            } catch (NotFoundException e) {
-                response = HTTPErrorResponseBuilder.build(404, e.getMessage());
+            } catch (RemotingException e) {
+                response = errorHandler.build(e);
             } catch (Exception e) {
-                response = HTTPErrorResponseBuilder.build(500, e.getMessage());
+                e.printStackTrace();
+                response = errorHandler.build(
+                        new RemotingException(errorHandler.getDefaultErrorCode(), e.getMessage())
+                );
             }
-            String responseString = HTTPMarshaller.marshall(response);
+            invoker.afterInvoke(request, response);
+            String responseString = marshaller.marshall(response);
             out.write(responseString);
             out.flush();
         } catch (Exception e) {

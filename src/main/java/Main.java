@@ -22,12 +22,12 @@ public class Main {
         @Override
         public void beforeRequest(HTTPRequest request) throws RemotingException {
             if (!request.getHeaders().containsKey("oi")) {
-                throw new RemotingException("Não tem header oi!");
+                throw new RemotingException(403, "Não tem header oi!");
             }
         }
 
         @Override
-        public void afterResponse(HTTPResponse response) throws RemotingException {
+        public void afterResponse(HTTPRequest request, HTTPResponse response) throws RemotingException {
             response.getHeaders().put("OI", "adicionado automaticamente");
         }
 
@@ -44,12 +44,12 @@ public class Main {
         @Override
         public void beforeRequest(HTTPRequest request) throws RemotingException {
             if (!request.getHeaders().containsKey("oi10")) {
-                throw new RemotingException("Não tem header oi10!");
+                throw new RemotingException(403, "Não tem header oi10!");
             }
         }
 
         @Override
-        public void afterResponse(HTTPResponse response) throws RemotingException {
+        public void afterResponse(HTTPRequest request, HTTPResponse response) throws RemotingException {
             response.getHeaders().put("OI10", "adicionado automaticamente de novo");
         }
 
