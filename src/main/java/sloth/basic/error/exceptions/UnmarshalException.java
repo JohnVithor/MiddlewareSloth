@@ -1,6 +1,4 @@
-package sloth.basic.marshaller;
-
-import sloth.basic.error.RemotingException;
+package sloth.basic.error.exceptions;
 
 public class UnmarshalException extends RemotingException {
 

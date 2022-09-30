@@ -1,4 +1,4 @@
-package sloth.basic.error;
+package sloth.basic.error.exceptions;
 
 public class NotFoundException extends RemotingException {
     public NotFoundException(String message) {

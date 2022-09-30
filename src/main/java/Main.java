@@ -3,7 +3,7 @@ import sloth.basic.annotations.route.Body;
 import sloth.basic.annotations.route.MethodMapping;
 import sloth.basic.annotations.route.RequestMapping;
 import sloth.basic.annotations.route.Param;
-import sloth.basic.error.RemotingException;
+import sloth.basic.error.exceptions.RemotingException;
 import sloth.basic.http.HTTPRequest;
 import sloth.basic.http.HTTPResponse;
 import sloth.basic.http.MethodHTTP;

@@ -1,7 +1,7 @@
 package sloth.basic.invoker;
 
 
-import sloth.basic.error.RemotingException;
+import sloth.basic.error.exceptions.RemotingException;
 
 public interface Invoker<Request, Response> {
 

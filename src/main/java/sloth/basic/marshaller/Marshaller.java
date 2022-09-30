@@ -1,5 +1,7 @@
 package sloth.basic.marshaller;
 
+import sloth.basic.error.exceptions.UnmarshalException;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.InetAddress;

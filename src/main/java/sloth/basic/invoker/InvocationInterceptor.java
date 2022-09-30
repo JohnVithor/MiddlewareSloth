@@ -1,6 +1,6 @@
 package sloth.basic.invoker;
 
-import sloth.basic.error.RemotingException;
+import sloth.basic.error.exceptions.RemotingException;
 import sloth.basic.http.HTTPRequest;
 import sloth.basic.http.HTTPResponse;
 

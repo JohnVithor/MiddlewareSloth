@@ -8,11 +8,8 @@ import sloth.basic.annotations.route.Body;
 import sloth.basic.annotations.route.MethodMapping;
 import sloth.basic.annotations.route.Param;
 import sloth.basic.annotations.route.RequestMapping;
-import sloth.basic.error.BadRequestException;
-import sloth.basic.error.InternalServerErrorException;
+import sloth.basic.error.exceptions.*;
 import sloth.basic.util.RouteInfo;
-import sloth.basic.error.NotFoundException;
-import sloth.basic.error.RemotingException;
 import sloth.basic.http.HTTPRequest;
 import sloth.basic.http.HTTPResponse;
 
@@ -54,7 +51,7 @@ public class HTTPInvoker implements Invoker<HTTPRequest, HTTPResponse>{
             .filter(routeInfo -> routeInfo.verb().equals(request.getMethod()))
             .findFirst();
         if (found.isEmpty()) {
-            throw new BadRequestException("Method: " + request.getMethod() + " not supported on " + request.getQuery());
+            throw new MethodNotAllowedException("Method: " + request.getMethod() + " not supported on " + request.getQuery());
         }
         return execute(found.get(), request);
     }

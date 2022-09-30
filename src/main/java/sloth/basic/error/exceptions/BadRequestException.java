@@ -1,4 +1,4 @@
-package sloth.basic.error;
+package sloth.basic.error.exceptions;
 
 public class BadRequestException extends RemotingException {
     public BadRequestException(String message) {

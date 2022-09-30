@@ -1,5 +1,6 @@
 package sloth.basic.error;
 
+import sloth.basic.error.exceptions.RemotingException;
 import sloth.basic.http.HTTPResponse;
 
 public class HTTPErrorHandler implements ErrorHandler<HTTPResponse>{
