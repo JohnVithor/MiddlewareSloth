@@ -3,6 +3,7 @@ import sloth.basic.annotations.route.Body;
 import sloth.basic.annotations.route.MethodMapping;
 import sloth.basic.annotations.route.RequestMapping;
 import sloth.basic.annotations.route.Param;
+import sloth.basic.error.MiddlewareConfigurationException;
 import sloth.basic.error.RemotingException;
 import sloth.basic.http.data.HTTPRequest;
 import sloth.basic.http.data.HTTPResponse;
@@ -97,7 +98,7 @@ public class Main {
         }
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws MiddlewareConfigurationException {
         Sloth sloth = new Sloth();
         sloth.registerConf(new ext());
         sloth.registerConf(new ext10());

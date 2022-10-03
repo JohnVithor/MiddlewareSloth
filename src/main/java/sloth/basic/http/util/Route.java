@@ -4,4 +4,4 @@ import sloth.basic.http.data.MethodHTTP;
 
 import java.lang.reflect.Method;
 
-public record RouteInfo(MethodHTTP verb, String content_type, Method method, Object obj) {}
+public record Route(MethodHTTP verb, String content_type, Method method, Object obj) {}

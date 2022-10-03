@@ -8,14 +8,16 @@ import sloth.basic.annotations.route.Body;
 import sloth.basic.annotations.route.MethodMapping;
 import sloth.basic.annotations.route.Param;
 import sloth.basic.annotations.route.RequestMapping;
+import sloth.basic.error.MiddlewareConfigurationException;
 import sloth.basic.error.RemotingException;
 import sloth.basic.http.error.BadRequestException;
 import sloth.basic.http.error.InternalServerErrorException;
 import sloth.basic.http.error.MethodNotAllowedException;
 import sloth.basic.http.error.NotFoundException;
+import sloth.basic.http.util.RouteInfos;
 import sloth.basic.invoker.InvocationInterceptor;
 import sloth.basic.invoker.Invoker;
-import sloth.basic.http.util.RouteInfo;
+import sloth.basic.http.util.Route;
 import sloth.basic.http.data.HTTPRequest;
 import sloth.basic.http.data.HTTPResponse;
 
@@ -30,7 +32,7 @@ public class HTTPInvoker implements Invoker<HTTPRequest, HTTPResponse> {
     private final TreeSet<InvocationInterceptor> hooks = new TreeSet<>();
     private final ObjectMapper mapper = new ObjectMapper();
     private final TypeParser parser = TypeParser.newBuilder().build();
-    private final ConcurrentHashMap<String, List<RouteInfo>> routes = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, RouteInfos> routes = new ConcurrentHashMap<>();
 
     @Override
     public void beforeInvoke(HTTPRequest request) throws RemotingException {
@@ -48,21 +50,18 @@ public class HTTPInvoker implements Invoker<HTTPRequest, HTTPResponse> {
 
     @Override
     public HTTPResponse invoke(HTTPRequest request) throws RemotingException {
-        List<RouteInfo> methods = routes.get(request.getQuery());
-        if (methods == null || methods.isEmpty()) {
+        RouteInfos methods = routes.get(request.getQuery());
+        if (methods == null) {
             throw new NotFoundException("Route : " + request.getQuery() + " not found");
         }
-        Optional<RouteInfo> found = methods
-            .stream()
-            .filter(routeInfo -> routeInfo.verb().equals(request.getMethod()))
-            .findFirst();
+        Optional<Route> found = methods.get(request.getMethod());
         if (found.isEmpty()) {
             throw new MethodNotAllowedException("Method: " + request.getMethod() + " not supported on " + request.getQuery());
         }
         return execute(found.get(), request);
     }
 
-    public HTTPResponse execute(RouteInfo info, HTTPRequest request) throws RemotingException {
+    public HTTPResponse execute(Route info, HTTPRequest request) throws RemotingException {
         try {
             List<Object> params = new ArrayList<>();
             for (Parameter p : info.method().getParameters()) {
@@ -70,7 +69,7 @@ public class HTTPInvoker implements Invoker<HTTPRequest, HTTPResponse> {
                     String name = p.getAnnotation(Param.class).name();
                     String value = request.getQueryParams().get(name);
                     if (value == null) {
-                        throw new BadRequestException("parameter " + name + " not specified");
+                        throw new BadRequestException("Parameter " + name + " not specified");
                     }
                     params.add(parser.parse(value, p.getType()));
                 } else if (p.isAnnotationPresent(Body.class)) {
@@ -80,11 +79,6 @@ public class HTTPInvoker implements Invoker<HTTPRequest, HTTPResponse> {
                     } else {
                         params.add(parser.parse(request.getBody(), p.getType()));
                     }
-                } else {
-                    // TODO: mover caso para o momento de registro do método
-                    // temporariamente será assumido que o parametro irá como null
-                    params.add(null);
-//                    throw new BadRequestException("parameter " + p.getName() + "not annotated");
                 }
             }
             String response = mapper.writeValueAsString(info.method().invoke(info.obj(), params.toArray()));
@@ -101,7 +95,7 @@ public class HTTPInvoker implements Invoker<HTTPRequest, HTTPResponse> {
     }
 
     @Override
-    public void registerRoutes(Object object) {
+    public void registerRoutes(Object object) throws MiddlewareConfigurationException {
         Class<?> clazz = object.getClass();
         if (clazz.isAnnotationPresent(RequestMapping.class)) {
             for (Method method : clazz.getDeclaredMethods()) {
@@ -114,8 +108,18 @@ public class HTTPInvoker implements Invoker<HTTPRequest, HTTPResponse> {
                     } else {
                         route = "/"+clazz.getAnnotation(RequestMapping.class).path() + "/" + annot.path();
                     }
-                    List<RouteInfo> methods = routes.getOrDefault(route, new ArrayList<>());
-                    methods.add(new RouteInfo(annot.method(), annot.content_type(), method, object));
+                    for (Parameter p : method.getParameters()) {
+                        if (!(p.isAnnotationPresent(Param.class) || p.isAnnotationPresent(Body.class))) {
+                            throw new MiddlewareConfigurationException("Parameter " + p.getName() + " not annotated with" +
+                                    " 'Param' or 'Body'" + " on method '"+method.getName()+"' of route " + route);
+                        }
+                    }
+                    RouteInfos methods = routes.getOrDefault(route, new RouteInfos());
+                    try {
+                        methods.add(new Route(annot.method(), annot.content_type(), method, object));
+                    } catch (MiddlewareConfigurationException e) {
+                        throw new MiddlewareConfigurationException(e.getMessage() + " on route: " + route);
+                    }
                     routes.put(route, methods);
                 }
             }

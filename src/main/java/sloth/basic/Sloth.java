@@ -1,5 +1,6 @@
 package sloth.basic;
 
+import sloth.basic.error.MiddlewareConfigurationException;
 import sloth.basic.http.error.HTTPErrorHandler;
 import sloth.basic.handler.ServerRequestHandler;
 import sloth.basic.http.data.HTTPRequest;
@@ -19,7 +20,7 @@ public class Sloth {
         serverRequestHandler.init(port, marshaller, invoker, errorHandler);
     }
 
-    public void registerRoutes(Object object) {
+    public void registerRoutes(Object object) throws MiddlewareConfigurationException {
         invoker.registerRoutes(object);
     }
 
