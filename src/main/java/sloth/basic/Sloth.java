@@ -1,6 +1,7 @@
 package sloth.basic;
 
 import sloth.basic.error.MiddlewareConfigurationException;
+import sloth.basic.http.HTTPQoSObserver;
 import sloth.basic.http.error.HTTPErrorHandler;
 import sloth.basic.handler.ServerRequestHandler;
 import sloth.basic.http.data.HTTPRequest;
@@ -15,16 +16,17 @@ public class Sloth {
     private final HTTPMarshaller marshaller = new HTTPMarshaller();
     private final HTTPInvoker invoker = new HTTPInvoker();
     private final HTTPErrorHandler errorHandler = new HTTPErrorHandler();
+    private final HTTPQoSObserver qoSObserver = new HTTPQoSObserver();
 
     public void init(int port) {
-        serverRequestHandler.init(port, marshaller, invoker, errorHandler);
+        serverRequestHandler.init(port, marshaller, invoker, errorHandler, qoSObserver);
     }
 
     public void registerRoutes(Object object) throws MiddlewareConfigurationException {
         invoker.registerRoutes(object);
     }
 
-    public void registerConf(InvocationInterceptor ext) {
+    public void registerConf(InvocationInterceptor<HTTPRequest, HTTPResponse> ext) {
         invoker.registerConf(ext);
     }
 }

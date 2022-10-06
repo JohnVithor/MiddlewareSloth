@@ -26,26 +26,18 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 
 public class HTTPInvoker implements Invoker<HTTPRequest, HTTPResponse> {
 
-    private final TreeSet<InvocationInterceptor> hooks = new TreeSet<>();
+    private final TreeSet<InvocationInterceptor<HTTPRequest, HTTPResponse>> hooks = new TreeSet<>();
     private final ObjectMapper mapper = new ObjectMapper();
     private final TypeParser parser = TypeParser.newBuilder().build();
     private final ConcurrentHashMap<String, RouteInfos> routes = new ConcurrentHashMap<>();
 
     @Override
-    public void beforeInvoke(HTTPRequest request) throws RemotingException {
-        for (InvocationInterceptor e: hooks) {
-            e.beforeRequest(request);
-        }
-    }
-
-    @Override
-    public void afterInvoke(HTTPRequest request, HTTPResponse response) throws RemotingException {
-        for (InvocationInterceptor e: hooks) {
-            e.afterResponse(request, response);
-        }
+    public Stream<InvocationInterceptor<HTTPRequest, HTTPResponse>> getHooks() {
+        return hooks.stream();
     }
 
     @Override
@@ -127,7 +119,7 @@ public class HTTPInvoker implements Invoker<HTTPRequest, HTTPResponse> {
     }
 
     @Override
-    public void registerConf(InvocationInterceptor conf) {
+    public void registerConf(InvocationInterceptor<HTTPRequest, HTTPResponse> conf) {
         hooks.add(conf);
     }
 }

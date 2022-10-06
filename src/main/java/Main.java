@@ -13,7 +13,7 @@ import sloth.basic.http.data.ContentType;
 
 public class Main {
 
-    public static class ext implements InvocationInterceptor {
+    public static class ext implements InvocationInterceptor<HTTPRequest,HTTPResponse> {
 
         @Override
         public int getPriority() {
@@ -31,11 +31,9 @@ public class Main {
         public void afterResponse(HTTPRequest request, HTTPResponse response) throws RemotingException {
             response.getHeaders().put("OI", "adicionado automaticamente");
         }
-
-
     }
 
-    public static class ext10 implements InvocationInterceptor {
+    public static class ext10 implements InvocationInterceptor<HTTPRequest,HTTPResponse> {
 
         @Override
         public int getPriority() {
@@ -53,8 +51,6 @@ public class Main {
         public void afterResponse(HTTPRequest request, HTTPResponse response) throws RemotingException {
             response.getHeaders().put("OI10", "adicionado automaticamente de novo");
         }
-
-
     }
 
     @RequestMapping(path = "teste")
