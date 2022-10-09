@@ -15,7 +15,7 @@ public class ServerRequestHandler<Request, Response> {
                      Marshaller<Request, Response> marshaller,
                      Invoker<Request, Response> invoker,
                      ErrorHandler<Response> errorHandler,
-                     QoSObserver qoSObserver) {
+                     QoSObserver<Request, Response> qoSObserver) {
         try (ServerSocket serverSocket = new ServerSocket(port)) {
             System.err.println("Iniciando Sloth Server na porta " + port);
             while (true) {

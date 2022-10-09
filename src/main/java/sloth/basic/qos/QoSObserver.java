@@ -1,10 +1,17 @@
 package sloth.basic.qos;
 
-public interface QoSObserver<Request, Response> {
+import java.util.concurrent.ConcurrentHashMap;
 
-    void register();
+public abstract class QoSObserver<Request, Response> {
 
-    QoSData<Request, Response> newEvent();
+    private final ConcurrentHashMap<String, RouteStats> stats = new ConcurrentHashMap<>();
 
-    void endEvent(QoSData<Request, Response> data);
+    protected abstract void register();
+
+    public abstract QoSData<Request, Response> newEvent();
+
+    public void endEvent(QoSData<Request, Response> data) {
+        stats.compute(data.getId(),
+                (id, routeStats) -> routeStats == null ? new RouteStats(data) : routeStats.update(data));
+    };
 }

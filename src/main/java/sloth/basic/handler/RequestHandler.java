@@ -6,7 +6,6 @@ import sloth.basic.invoker.Invoker;
 import sloth.basic.marshaller.Marshaller;
 import sloth.basic.qos.QoSData;
 import sloth.basic.qos.QoSObserver;
-import sloth.basic.qos.QoSSteps;
 
 import java.io.*;
 import java.net.Socket;
@@ -17,14 +16,13 @@ public class RequestHandler<Request, Response> implements Runnable {
     private final Marshaller<Request, Response> marshaller;
     private final Invoker<Request, Response> invoker;
     private final ErrorHandler<Response> errorHandler;
-
-    private final QoSObserver qoSObserver;
+    private final QoSObserver<Request, Response> qoSObserver;
 
     public RequestHandler(Socket socket,
                           Marshaller<Request, Response> marshaller,
                           Invoker<Request, Response> invoker,
                           ErrorHandler<Response> errorHandler,
-                          QoSObserver qoSObserver) {
+                          QoSObserver<Request, Response> qoSObserver) {
         this.socket = socket;
         this.invoker = invoker;
         this.marshaller = marshaller;
@@ -34,7 +32,7 @@ public class RequestHandler<Request, Response> implements Runnable {
 
     @Override
     public void run() {
-        QoSData qoSData = qoSObserver.newEvent();
+        QoSData<Request, Response> qoSData = qoSObserver.newEvent();
         try (
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
             BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()))

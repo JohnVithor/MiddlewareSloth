@@ -6,11 +6,11 @@ import sloth.basic.http.qos.HTTPQoSData;
 import sloth.basic.qos.QoSData;
 import sloth.basic.qos.QoSObserver;
 
-public class HTTPQoSObserver implements QoSObserver<HTTPRequest, HTTPResponse> {
+public class HTTPQoSObserver extends QoSObserver<HTTPRequest, HTTPResponse> {
 
 
     @Override
-    public void register() {
+    protected void register() {
 
     }
 

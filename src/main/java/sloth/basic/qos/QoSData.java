@@ -2,6 +2,8 @@ package sloth.basic.qos;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class QoSData<Request, Response> {
 
@@ -24,6 +26,7 @@ public abstract class QoSData<Request, Response> {
     private Instant writeResponseStart;
     private Instant writeResponseEnd;
 
+    private final List<Exception> errors = new ArrayList<>();
     //
 
 
@@ -70,7 +73,11 @@ public abstract class QoSData<Request, Response> {
     }
 
     public void addError(Exception e) {
+        errors.add(e);
+    }
 
+    public List<Exception> getErrors() {
+        return errors;
     }
 
     public void errorHandleEnd() {
