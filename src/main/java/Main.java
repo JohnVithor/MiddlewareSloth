@@ -33,26 +33,6 @@ public class Main {
         }
     }
 
-    public static class ext10 implements InvocationInterceptor<HTTPRequest,HTTPResponse> {
-
-        @Override
-        public int getPriority() {
-            return 10;
-        }
-
-        @Override
-        public void beforeRequest(HTTPRequest request) throws RemotingException {
-            if (!request.getHeaders().containsKey("oi10")) {
-                throw new RemotingException(403, "Não tem header oi10!");
-            }
-        }
-
-        @Override
-        public void afterResponse(HTTPRequest request, HTTPResponse response) throws RemotingException {
-            response.getHeaders().put("OI10", "adicionado automaticamente de novo");
-        }
-    }
-
     @RequestMapping(path = "teste")
     public static class test {
 
@@ -96,8 +76,8 @@ public class Main {
 
     public static void main(String[] args) throws MiddlewareConfigurationException {
         Sloth sloth = new Sloth();
+        sloth.activateQoS();
         sloth.registerConf(new ext());
-        sloth.registerConf(new ext10());
         sloth.registerRoutes(new test());
         sloth.init(8080);
     }

@@ -24,7 +24,7 @@ public class HTTPQoSObserver extends QoSObserver<HTTPRequest, HTTPResponse> {
     }
 
     @MethodMapping(method = MethodHTTP.GET)
-    public RouteStats getStats(@Param(name = "route") String route) {
-        return stats.getOrDefault(route, new RouteStats());
+    public RouteStats<HTTPRequest, HTTPResponse> getStats(@Param(name = "route") String route) {
+        return stats.getOrDefault(route, new RouteStats<>());
     }
 }
