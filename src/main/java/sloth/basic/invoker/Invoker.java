@@ -3,11 +3,12 @@ package sloth.basic.invoker;
 
 import sloth.basic.error.MiddlewareConfigurationException;
 import sloth.basic.error.RemotingException;
+import sloth.basic.extension.InvocationInterceptor;
+import sloth.basic.marshaller.Sizeable;
 
-import java.util.List;
 import java.util.stream.Stream;
 
-public interface Invoker<Request, Response> {
+public interface Invoker<Request extends Sizeable, Response extends Sizeable> {
 
     Stream<InvocationInterceptor<Request, Response>> getHooks();
     default void beforeInvoke(Request request) throws RemotingException {

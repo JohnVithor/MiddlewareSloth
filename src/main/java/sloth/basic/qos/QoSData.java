@@ -2,6 +2,7 @@ package sloth.basic.qos;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,7 +29,6 @@ public abstract class QoSData<Request, Response> {
 
     private final List<Exception> errors = new ArrayList<>();
     //
-
 
     public QoSData() {
         eventStart = Instant.now();
@@ -69,6 +69,7 @@ public abstract class QoSData<Request, Response> {
     }
 
     public void errorHandleStart() {
+        invokeEnd = Instant.now();
         errorHandleStart = Instant.now();
     }
 
@@ -100,6 +101,10 @@ public abstract class QoSData<Request, Response> {
 
     public void writeResponseEnd() {
         writeResponseEnd = Instant.now();
+    }
+
+    public void endEvent() {
+        eventEnd = Instant.now();
     }
 
     abstract public String getId();
@@ -182,6 +187,9 @@ public abstract class QoSData<Request, Response> {
     }
 
     Duration getErrorHandleDuration(){
+        if(getErrorHandleStart() == null || getErrorHandleEnd() == null) {
+            return Duration.ZERO;
+        }
         return Duration.between(getErrorHandleStart(), getErrorHandleEnd());
     }
 
@@ -199,6 +207,31 @@ public abstract class QoSData<Request, Response> {
 
     Duration getEventDuration() {
         return Duration.between(getEventStart(), getEventEnd());
+    }
+
+    @Override
+    public String toString() {
+        return "QoSData{" +
+                "request=" + request +
+                ", response=" + response +
+                ", eventStart=" + eventStart +
+                ", eventEnd=" + eventEnd +
+                ", unmarshallStart=" + unmarshallStart +
+                ", unmarshallEnd=" + unmarshallEnd +
+                ", beforeInvokeStart=" + beforeInvokeStart +
+                ", beforeInvokeEnd=" + beforeInvokeEnd +
+                ", invokeStart=" + invokeStart +
+                ", invokeEnd=" + invokeEnd +
+                ", errorHandleStart=" + errorHandleStart +
+                ", errorHandleEnd=" + errorHandleEnd +
+                ", afterInvokeStart=" + afterInvokeStart +
+                ", afterInvokeEnd=" + afterInvokeEnd +
+                ", marshallStart=" + marshallStart +
+                ", marshallEnd=" + marshallEnd +
+                ", writeResponseStart=" + writeResponseStart +
+                ", writeResponseEnd=" + writeResponseEnd +
+                ", errors=" + errors +
+                '}';
     }
 }
 

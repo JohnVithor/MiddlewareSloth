@@ -1,8 +1,9 @@
-package sloth.basic.invoker;
+package sloth.basic.extension;
 
 import sloth.basic.error.RemotingException;
+import sloth.basic.marshaller.Sizeable;
 
-public interface InvocationInterceptor<Request, Response> extends Comparable<InvocationInterceptor>{
+public interface InvocationInterceptor<Request extends Sizeable, Response extends Sizeable> extends Comparable<InvocationInterceptor<Request, Response>>{
 
     int getPriority();
 

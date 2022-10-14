@@ -1,8 +1,10 @@
 package sloth.basic.http.data;
 
+import sloth.basic.marshaller.Sizeable;
+
 import java.util.HashMap;
 
-public class HTTPResponse {
+public class HTTPResponse implements Sizeable {
     private final String version;
     private final int statusCode;
     private final String statusMessage;
@@ -75,5 +77,10 @@ public class HTTPResponse {
         headers.put("Content-Type", content_type);
         headers.put("Content-Length", String.valueOf(body.length()));
         return headers;
+    }
+
+    @Override
+    public long size() {
+        return body.length();
     }
 }

@@ -1,9 +1,11 @@
 package sloth.basic.http.data;
 
+import sloth.basic.marshaller.Sizeable;
+
 import java.util.HashMap;
 import java.util.Map;
 
-public class HTTPRequest {
+public class HTTPRequest implements Sizeable {
     private final String requestor;
     private final MethodHTTP method;
     private final String query;
@@ -20,6 +22,10 @@ public class HTTPRequest {
         this.version = version;
         this.headers = headers;
         this.body = body;
+    }
+
+    public String getRequestor() {
+        return requestor;
     }
 
     public MethodHTTP getMethod() {
@@ -49,11 +55,18 @@ public class HTTPRequest {
     @Override
     public String toString() {
         return "HTTPRequest{" +
-                "method='" + method + '\'' +
+                "requestor='" + requestor + '\'' +
+                ", method=" + method +
                 ", query='" + query + '\'' +
+                ", queryParams=" + queryParams +
                 ", version='" + version + '\'' +
                 ", headers=" + headers +
                 ", body='" + body + '\'' +
                 '}';
+    }
+
+    @Override
+    public long size() {
+        return body.length();
     }
 }

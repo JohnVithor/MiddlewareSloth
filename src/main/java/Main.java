@@ -8,7 +8,7 @@ import sloth.basic.error.RemotingException;
 import sloth.basic.http.data.HTTPRequest;
 import sloth.basic.http.data.HTTPResponse;
 import sloth.basic.http.data.MethodHTTP;
-import sloth.basic.invoker.InvocationInterceptor;
+import sloth.basic.extension.InvocationInterceptor;
 import sloth.basic.http.data.ContentType;
 
 public class Main {

@@ -2,28 +2,30 @@ package sloth.basic.handler;
 
 import sloth.basic.error.*;
 import sloth.basic.error.RemotingException;
+import sloth.basic.extension.protocolplugin.Connection;
 import sloth.basic.invoker.Invoker;
 import sloth.basic.marshaller.Marshaller;
+import sloth.basic.marshaller.Sizeable;
 import sloth.basic.qos.QoSData;
 import sloth.basic.qos.QoSObserver;
 
 import java.io.*;
 import java.net.Socket;
 
-public class RequestHandler<Request, Response> implements Runnable {
+public class RequestHandler<Request extends Sizeable, Response extends Sizeable> implements Runnable {
 
-    private final Socket socket;
+    private final Connection connection;
     private final Marshaller<Request, Response> marshaller;
     private final Invoker<Request, Response> invoker;
     private final ErrorHandler<Response> errorHandler;
     private final QoSObserver<Request, Response> qoSObserver;
 
-    public RequestHandler(Socket socket,
+    public RequestHandler(Connection connection,
                           Marshaller<Request, Response> marshaller,
                           Invoker<Request, Response> invoker,
                           ErrorHandler<Response> errorHandler,
                           QoSObserver<Request, Response> qoSObserver) {
-        this.socket = socket;
+        this.connection = connection;
         this.invoker = invoker;
         this.marshaller = marshaller;
         this.errorHandler = errorHandler;
@@ -33,15 +35,13 @@ public class RequestHandler<Request, Response> implements Runnable {
     @Override
     public void run() {
         QoSData<Request, Response> qoSData = qoSObserver.newEvent();
-        try (
-            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-            BufferedWriter out = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()))
-        ) {
+        try {
             Response response;
             Request request = null;
             try {
                 qoSData.unmarshallStart();
-                request = marshaller.unmarshall(in, socket.getInetAddress());
+                request = marshaller.unmarshall(connection.getInput(), connection.getInetAddress());
+                qoSData.setRequest(request);
                 qoSData.unmarshallEndAndBeforeInvokeStart();
                 invoker.beforeInvoke(request);
                 qoSData.beforeInvokeEndAndInvokeStart();
@@ -65,16 +65,16 @@ public class RequestHandler<Request, Response> implements Runnable {
             invoker.afterInvoke(request, response);
             qoSData.afterInvokeEndAndMarshallStart();
             String responseString = marshaller.marshall(response);
+            qoSData.setResponse(response);
             qoSData.marshallEndAndWriteResponseStart();
-            out.write(responseString);
-            out.flush();
+            connection.send(responseString);
             qoSData.writeResponseEnd();
         } catch (Exception e) {
             qoSData.addError(e);
             e.printStackTrace();
         } finally {
             try {
-                socket.close();
+                connection.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }

@@ -2,6 +2,7 @@ package sloth.basic.http;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.github.drapostolos.typeparser.TypeParser;
 import com.github.drapostolos.typeparser.TypeParserException;
 import sloth.basic.annotations.route.Body;
@@ -15,7 +16,7 @@ import sloth.basic.http.error.InternalServerErrorException;
 import sloth.basic.http.error.MethodNotAllowedException;
 import sloth.basic.http.error.NotFoundException;
 import sloth.basic.http.util.RouteInfos;
-import sloth.basic.invoker.InvocationInterceptor;
+import sloth.basic.extension.InvocationInterceptor;
 import sloth.basic.invoker.Invoker;
 import sloth.basic.http.util.Route;
 import sloth.basic.http.data.HTTPRequest;
@@ -31,7 +32,7 @@ import java.util.stream.Stream;
 public class HTTPInvoker implements Invoker<HTTPRequest, HTTPResponse> {
 
     private final TreeSet<InvocationInterceptor<HTTPRequest, HTTPResponse>> hooks = new TreeSet<>();
-    private final ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = JsonMapper.builder().findAndAddModules().build();
     private final TypeParser parser = TypeParser.newBuilder().build();
     private final ConcurrentHashMap<String, RouteInfos> routes = new ConcurrentHashMap<>();
 
