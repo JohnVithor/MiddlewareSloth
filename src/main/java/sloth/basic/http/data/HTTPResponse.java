@@ -1,10 +1,10 @@
 package sloth.basic.http.data;
 
-import sloth.basic.marshaller.Sizeable;
+import sloth.basic.marshaller.IdentifiedSizeable;
 
 import java.util.HashMap;
 
-public class HTTPResponse implements Sizeable {
+public class HTTPResponse implements IdentifiedSizeable {
     private final String version;
     private final int statusCode;
     private final String statusMessage;
@@ -60,7 +60,7 @@ public class HTTPResponse implements Sizeable {
             case 403 -> "Forbidden";
             case 404 -> "Not Found";
             case 405 -> "Method Not Allowed";
-            case 500 -> "Internal Server Error";
+            case 503 -> "Service Unavailable";
             default -> "Internal Server Error";
         };
     }
@@ -78,9 +78,13 @@ public class HTTPResponse implements Sizeable {
         headers.put("Content-Length", String.valueOf(body.length()));
         return headers;
     }
+    @Override
+    public long getSize() {
+        return body.length();
+    }
 
     @Override
-    public long size() {
-        return body.length();
+    public String getId() {
+        return "";
     }
 }

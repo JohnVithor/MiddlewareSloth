@@ -5,14 +5,14 @@ import sloth.basic.error.RemotingException;
 import sloth.basic.extension.protocolplugin.Connection;
 import sloth.basic.invoker.Invoker;
 import sloth.basic.marshaller.Marshaller;
-import sloth.basic.marshaller.Sizeable;
+import sloth.basic.marshaller.IdentifiedSizeable;
 import sloth.basic.qos.QoSData;
 import sloth.basic.qos.QoSObserver;
 
 import java.io.*;
 import java.net.Socket;
 
-public class RequestHandler<Request extends Sizeable, Response extends Sizeable> implements Runnable {
+public class RequestHandler<Request extends IdentifiedSizeable, Response extends IdentifiedSizeable> implements Runnable {
 
     private final Connection connection;
     private final Marshaller<Request, Response> marshaller;
@@ -38,12 +38,14 @@ public class RequestHandler<Request extends Sizeable, Response extends Sizeable>
         try {
             Response response;
             Request request = null;
+            String id = "";
             try {
                 qoSData.unmarshallStart();
                 request = marshaller.unmarshall(connection.getInput(), connection.getInetAddress());
+                id = request.getId();
                 qoSData.setRequest(request);
                 qoSData.unmarshallEndAndBeforeInvokeStart();
-                invoker.beforeInvoke(request);
+                invoker.beforeInvoke(request, qoSObserver.get(id));
                 qoSData.beforeInvokeEndAndInvokeStart();
                 response = invoker.invoke(request);
                 qoSData.invokeEnd();
@@ -62,7 +64,7 @@ public class RequestHandler<Request extends Sizeable, Response extends Sizeable>
                 qoSData.errorHandleEnd();
             }
             qoSData.afterInvokeStart();
-            invoker.afterInvoke(request, response);
+            invoker.afterInvoke(request, response, qoSObserver.get(id));
             qoSData.afterInvokeEndAndMarshallStart();
             String responseString = marshaller.marshall(response);
             qoSData.setResponse(response);

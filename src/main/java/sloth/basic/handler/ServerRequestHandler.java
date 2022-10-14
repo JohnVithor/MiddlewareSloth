@@ -5,12 +5,12 @@ import sloth.basic.extension.protocolplugin.Connection;
 import sloth.basic.extension.protocolplugin.Protocol;
 import sloth.basic.invoker.Invoker;
 import sloth.basic.marshaller.Marshaller;
-import sloth.basic.marshaller.Sizeable;
+import sloth.basic.marshaller.IdentifiedSizeable;
 import sloth.basic.qos.QoSObserver;
 
 import java.io.IOException;
 
-public class ServerRequestHandler<Request extends Sizeable, Response extends Sizeable> {
+public class ServerRequestHandler<Request extends IdentifiedSizeable, Response extends IdentifiedSizeable> {
 
     public void init(int port,
                      Protocol protocol,

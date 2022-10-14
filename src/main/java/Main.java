@@ -10,6 +10,11 @@ import sloth.basic.http.data.HTTPResponse;
 import sloth.basic.http.data.MethodHTTP;
 import sloth.basic.extension.InvocationInterceptor;
 import sloth.basic.http.data.ContentType;
+import sloth.basic.qos.QoSObserver;
+import sloth.basic.qos.RouteStats;
+
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.LongAdder;
 
 public class Main {
 
@@ -21,15 +26,46 @@ public class Main {
         }
 
         @Override
-        public void beforeRequest(HTTPRequest request) throws RemotingException {
+        public void beforeRequest(HTTPRequest request, RouteStats<HTTPRequest, HTTPResponse> qoSObserver) throws RemotingException {
             if (!request.getHeaders().containsKey("oi")) {
                 throw new RemotingException(403, "Não tem header oi!");
             }
         }
 
         @Override
-        public void afterResponse(HTTPRequest request, HTTPResponse response) throws RemotingException {
+        public void afterResponse(HTTPRequest request, HTTPResponse response, RouteStats<HTTPRequest, HTTPResponse> qoSObserver) throws RemotingException {
             response.getHeaders().put("OI", "adicionado automaticamente");
+        }
+    }
+
+    public static class qos implements InvocationInterceptor<HTTPRequest,HTTPResponse> {
+        private final LongAdder negate = new LongAdder();
+        @Override
+        public int getPriority() {
+            return 1;
+        }
+
+        @Override
+        public void beforeRequest(HTTPRequest request, RouteStats<HTTPRequest, HTTPResponse> stats) throws RemotingException {
+            if(request.getQuery().equals("/teste")) {
+                if (negate.longValue() > 0) {
+                    negate.decrement();
+                    throw new RemotingException(503, "Service Unavailable");
+                }
+            }
+        }
+
+        @Override
+        public void afterResponse(HTTPRequest request, HTTPResponse response, RouteStats<HTTPRequest, HTTPResponse> stats) throws RemotingException {
+            if(request.getQuery().equals("/teste")) {
+                if (response.getStatusCode() != 200) {
+                    if (response.getStatusCode() != 503 &&
+                        stats.getConsecutiveErrorCount() >= 5 &&
+                        negate.longValue() == 0) {
+                        negate.add(5);
+                    }
+                }
+            }
         }
     }
 
@@ -78,6 +114,7 @@ public class Main {
         Sloth sloth = new Sloth();
         sloth.activateQoS();
         sloth.registerConf(new ext());
+        sloth.registerConf(new qos());
         sloth.registerRoutes(new test());
         sloth.init(8080);
     }

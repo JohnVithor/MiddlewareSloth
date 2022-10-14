@@ -1,11 +1,11 @@
 package sloth.basic.http.data;
 
-import sloth.basic.marshaller.Sizeable;
+import sloth.basic.marshaller.IdentifiedSizeable;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class HTTPRequest implements Sizeable {
+public class HTTPRequest implements IdentifiedSizeable {
     private final String requestor;
     private final MethodHTTP method;
     private final String query;
@@ -66,7 +66,12 @@ public class HTTPRequest implements Sizeable {
     }
 
     @Override
-    public long size() {
+    public long getSize() {
         return body.length();
+    }
+
+    @Override
+    public String getId() {
+        return query;
     }
 }

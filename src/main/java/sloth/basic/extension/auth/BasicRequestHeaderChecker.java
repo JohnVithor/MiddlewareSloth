@@ -4,6 +4,8 @@ import sloth.basic.error.RemotingException;
 import sloth.basic.extension.InvocationInterceptor;
 import sloth.basic.http.data.HTTPRequest;
 import sloth.basic.http.data.HTTPResponse;
+import sloth.basic.qos.QoSObserver;
+import sloth.basic.qos.RouteStats;
 
 public class BasicRequestHeaderChecker implements InvocationInterceptor<HTTPRequest, HTTPResponse>{
 
@@ -19,7 +21,7 @@ public class BasicRequestHeaderChecker implements InvocationInterceptor<HTTPRequ
         return priority;
     }
     @Override
-    public void beforeRequest(HTTPRequest request) throws RemotingException {
+    public void beforeRequest(HTTPRequest request, RouteStats<HTTPRequest, HTTPResponse> qoSObserver) throws RemotingException {
         if (!request.getHeaders().containsKey(header)) {
 
         } else {
@@ -27,7 +29,7 @@ public class BasicRequestHeaderChecker implements InvocationInterceptor<HTTPRequ
         }
     }
     @Override
-    public void afterResponse(HTTPRequest request, HTTPResponse response) {
+    public void afterResponse(HTTPRequest request, HTTPResponse response, RouteStats<HTTPRequest, HTTPResponse> qoSObserver) {
         // EMPTY
     }
 }

@@ -1,12 +1,11 @@
 package sloth.basic.qos;
 
-
-import sloth.basic.marshaller.Sizeable;
+import sloth.basic.marshaller.IdentifiedSizeable;
 
 import java.io.Serializable;
 import java.time.Duration;
 
-public class RouteStats<Request extends Sizeable, Response extends Sizeable> implements Serializable {
+public class RouteStats<Request extends IdentifiedSizeable, Response extends IdentifiedSizeable> implements Serializable {
     private Duration meanEventDuration;
     private Duration meanUnmarshallDuration;
     private Duration meanBeforeInvokeDuration;
@@ -19,6 +18,7 @@ public class RouteStats<Request extends Sizeable, Response extends Sizeable> imp
     private long callCount = 0;
     private long meanRequestSize = 0;
     private long meanResponseSize = 0;
+    private long consecutiveErrorCount = 0;
 
     public RouteStats() {
         meanEventDuration = Duration.ZERO;
@@ -42,8 +42,9 @@ public class RouteStats<Request extends Sizeable, Response extends Sizeable> imp
         meanWriteResponseDuration = data.getWriteResponseDuration();
         ++callCount;
         errorCount = data.getErrors().size() > 0 ? 1 : 0;
-        meanRequestSize = data.getRequest().size();
-        meanResponseSize = data.getResponse().size();
+        consecutiveErrorCount = errorCount;
+        meanRequestSize = data.getRequest().getSize();
+        meanResponseSize = data.getResponse().getSize();
     }
 
     RouteStats<Request, Response> update(QoSData<Request, Response> data) {
@@ -55,10 +56,11 @@ public class RouteStats<Request extends Sizeable, Response extends Sizeable> imp
         meanAfterInvokeDuration = meanAfterInvokeDuration.plus(data.getAfterInvokeDuration().minus(meanAfterInvokeDuration)).dividedBy(callCount);
         meanMarshallDuration = meanMarshallDuration.plus(data.getMarshallDuration().minus(meanMarshallDuration)).dividedBy(callCount);
         meanWriteResponseDuration = meanWriteResponseDuration.plus(data.getWriteResponseDuration().minus(meanWriteResponseDuration)).dividedBy(callCount);
-        meanRequestSize = meanRequestSize + ((data.getRequest().size()- meanRequestSize) / callCount);
-        meanResponseSize = meanResponseSize + ((data.getResponse().size() - meanResponseSize) / callCount);
+        meanRequestSize = meanRequestSize + ((data.getRequest().getSize()- meanRequestSize) / callCount);
+        meanResponseSize = meanResponseSize + ((data.getResponse().getSize() - meanResponseSize) / callCount);
         ++callCount;
         errorCount = data.getErrors().size() > 0 ? errorCount+1 : errorCount;
+        consecutiveErrorCount = data.getErrors().size() > 0 ? consecutiveErrorCount+1 : 0;
         return this;
     }
 
@@ -94,6 +96,9 @@ public class RouteStats<Request extends Sizeable, Response extends Sizeable> imp
         return meanWriteResponseDuration;
     }
 
+    public long getConsecutiveErrorCount() {
+        return consecutiveErrorCount;
+    }
     public long getErrorCount() {
         return errorCount;
     }
@@ -108,23 +113,5 @@ public class RouteStats<Request extends Sizeable, Response extends Sizeable> imp
 
     public long getMeanResponseSize() {
         return meanResponseSize;
-    }
-
-    @Override
-    public String toString() {
-        return "RouteStats{" +
-                "meanEventDuration=" + meanEventDuration +
-                ", meanUnmarshallDuration=" + meanUnmarshallDuration +
-                ", meanBeforeInvokeDuration=" + meanBeforeInvokeDuration +
-                ", meanInvokeDuration=" + meanInvokeDuration +
-                ", meanErrorHandleDuration=" + meanErrorHandleDuration +
-                ", meanAfterInvokeDuration=" + meanAfterInvokeDuration +
-                ", meanMarshallDuration=" + meanMarshallDuration +
-                ", meanWriteResponseDuration=" + meanWriteResponseDuration +
-                ", errorCount=" + errorCount +
-                ", callCount=" + callCount +
-                ", meanRequestSize=" + meanRequestSize +
-                ", meanResponseSize=" + meanResponseSize +
-                '}';
     }
 }

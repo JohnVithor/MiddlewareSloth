@@ -69,6 +69,12 @@ public abstract class QoSData<Request, Response> {
 
     public void errorHandleStart() {
         invokeEnd = Instant.now();
+        if(invokeStart == null) {
+            invokeStart = invokeEnd;
+        }
+        if(beforeInvokeEnd == null) {
+            beforeInvokeEnd = invokeEnd;
+        }
         errorHandleStart = Instant.now();
     }
 
@@ -208,29 +214,5 @@ public abstract class QoSData<Request, Response> {
         return Duration.between(getEventStart(), getEventEnd());
     }
 
-    @Override
-    public String toString() {
-        return "QoSData{" +
-                "request=" + request +
-                ", response=" + response +
-                ", eventStart=" + eventStart +
-                ", eventEnd=" + eventEnd +
-                ", unmarshallStart=" + unmarshallStart +
-                ", unmarshallEnd=" + unmarshallEnd +
-                ", beforeInvokeStart=" + beforeInvokeStart +
-                ", beforeInvokeEnd=" + beforeInvokeEnd +
-                ", invokeStart=" + invokeStart +
-                ", invokeEnd=" + invokeEnd +
-                ", errorHandleStart=" + errorHandleStart +
-                ", errorHandleEnd=" + errorHandleEnd +
-                ", afterInvokeStart=" + afterInvokeStart +
-                ", afterInvokeEnd=" + afterInvokeEnd +
-                ", marshallStart=" + marshallStart +
-                ", marshallEnd=" + marshallEnd +
-                ", writeResponseStart=" + writeResponseStart +
-                ", writeResponseEnd=" + writeResponseEnd +
-                ", errors=" + errors +
-                '}';
-    }
 }
 

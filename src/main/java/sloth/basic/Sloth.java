@@ -34,7 +34,7 @@ public class Sloth {
         serverRequestHandler.init(port, new TCPProtocol(), marshaller, invoker, errorHandler, qoSObserver);
     }
 
-    public void registerRoutes(Main.test object) throws MiddlewareConfigurationException {
+    public void registerRoutes(Object object) throws MiddlewareConfigurationException {
         invoker.registerRoutes(object);
     }
 
