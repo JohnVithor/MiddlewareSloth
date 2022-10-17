@@ -1,6 +1,9 @@
 package sloth.basic;
 
 import sloth.basic.error.MiddlewareConfigurationException;
+import sloth.basic.extension.Configuration;
+import sloth.basic.extension.RegistrationConfiguration;
+import sloth.basic.extension.auth.SimpleAuth;
 import sloth.basic.extension.protocolplugin.Protocol;
 import sloth.basic.http.HTTPQoSObserver;
 import sloth.basic.http.error.HTTPErrorHandler;
@@ -13,6 +16,7 @@ import sloth.basic.http.HTTPMarshaller;
 import sloth.basic.protocols.TCPProtocol;
 import sloth.basic.qos.DisabledQoSObserver;
 import sloth.basic.qos.QoSObserver;
+
 
 public class Sloth {
     private final ServerRequestHandler<HTTPRequest, HTTPResponse> serverRequestHandler = new ServerRequestHandler<>();
@@ -38,7 +42,12 @@ public class Sloth {
         invoker.registerRoutes(object);
     }
 
-    public void registerConf(InvocationInterceptor<HTTPRequest, HTTPResponse> ext) {
-        invoker.registerConf(ext);
+    public void registerInterceptor(InvocationInterceptor<HTTPRequest, HTTPResponse> ext) {
+        invoker.registerInterceptor(ext);
+    }
+
+    public void registerAuth(SimpleAuth auth) {
+        invoker.configure(auth);
+        invoker.registerInterceptor(auth);
     }
 }

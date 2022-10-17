@@ -81,6 +81,6 @@ public class RequestHandler<Request extends IdentifiedSizeable, Response extends
                 e.printStackTrace();
             }
         }
-        qoSObserver.endEvent(qoSData);
+        Thread.ofVirtual().start(() -> qoSObserver.endEvent(qoSData));
     }
 }

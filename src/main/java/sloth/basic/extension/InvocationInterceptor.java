@@ -2,7 +2,6 @@ package sloth.basic.extension;
 
 import sloth.basic.error.RemotingException;
 import sloth.basic.marshaller.IdentifiedSizeable;
-import sloth.basic.qos.QoSObserver;
 import sloth.basic.qos.RouteStats;
 
 public interface InvocationInterceptor<Request extends IdentifiedSizeable, Response extends IdentifiedSizeable> extends Comparable<InvocationInterceptor<Request, Response>>{

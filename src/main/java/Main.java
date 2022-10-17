@@ -10,10 +10,8 @@ import sloth.basic.http.data.HTTPResponse;
 import sloth.basic.http.data.MethodHTTP;
 import sloth.basic.extension.InvocationInterceptor;
 import sloth.basic.http.data.ContentType;
-import sloth.basic.qos.QoSObserver;
 import sloth.basic.qos.RouteStats;
 
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.LongAdder;
 
 public class Main {
@@ -28,7 +26,7 @@ public class Main {
         @Override
         public void beforeRequest(HTTPRequest request, RouteStats<HTTPRequest, HTTPResponse> qoSObserver) throws RemotingException {
             if (!request.getHeaders().containsKey("oi")) {
-                throw new RemotingException(403, "Não tem header oi!");
+                throw new RemotingException(400, "Não tem header oi!");
             }
         }
 
@@ -42,7 +40,7 @@ public class Main {
         private final LongAdder negate = new LongAdder();
         @Override
         public int getPriority() {
-            return 1;
+            return 0;
         }
 
         @Override
@@ -58,12 +56,11 @@ public class Main {
         @Override
         public void afterResponse(HTTPRequest request, HTTPResponse response, RouteStats<HTTPRequest, HTTPResponse> stats) throws RemotingException {
             if(request.getQuery().equals("/teste")) {
-                if (response.getStatusCode() != 200) {
-                    if (response.getStatusCode() != 503 &&
-                        stats.getConsecutiveErrorCount() >= 5 &&
-                        negate.longValue() == 0) {
-                        negate.add(5);
-                    }
+                if (response.getStatusCode() != 200 &&
+                    response.getStatusCode() != 503 &&
+                    stats.getConsecutiveErrorCount() >= 5 &&
+                    negate.longValue() == 0) {
+                    negate.add(5);
                 }
             }
         }
@@ -113,8 +110,8 @@ public class Main {
     public static void main(String[] args) throws MiddlewareConfigurationException {
         Sloth sloth = new Sloth();
         sloth.activateQoS();
-        sloth.registerConf(new ext());
-        sloth.registerConf(new qos());
+        sloth.registerInterceptor(new ext());
+        sloth.registerInterceptor(new qos());
         sloth.registerRoutes(new test());
         sloth.init(8080);
     }

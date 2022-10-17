@@ -29,17 +29,12 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
 
-public class HTTPInvoker implements Invoker<HTTPRequest, HTTPResponse> {
+public class HTTPInvoker extends Invoker<HTTPRequest, HTTPResponse> {
 
-    private final TreeSet<InvocationInterceptor<HTTPRequest, HTTPResponse>> hooks = new TreeSet<>();
+
     private final ObjectMapper mapper = JsonMapper.builder().findAndAddModules().build();
     private final TypeParser parser = TypeParser.newBuilder().build();
     private final ConcurrentHashMap<String, RouteInfos> routes = new ConcurrentHashMap<>();
-
-    @Override
-    public Stream<InvocationInterceptor<HTTPRequest, HTTPResponse>> getHooks() {
-        return hooks.stream();
-    }
 
     @Override
     public HTTPResponse invoke(HTTPRequest request) throws RemotingException {
@@ -114,13 +109,9 @@ public class HTTPInvoker implements Invoker<HTTPRequest, HTTPResponse> {
                         throw new MiddlewareConfigurationException(e.getMessage() + " on route: " + route);
                     }
                     routes.put(route, methods);
+                    configurationsNotify(route, methods);
                 }
             }
         }
-    }
-
-    @Override
-    public void registerConf(InvocationInterceptor<HTTPRequest, HTTPResponse> conf) {
-        hooks.add(conf);
     }
 }
