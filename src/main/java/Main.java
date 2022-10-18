@@ -5,6 +5,7 @@ import sloth.basic.annotations.route.RequestMapping;
 import sloth.basic.annotations.route.Param;
 import sloth.basic.error.MiddlewareConfigurationException;
 import sloth.basic.error.RemotingException;
+import sloth.basic.extension.auth.SimpleAuth;
 import sloth.basic.http.data.HTTPRequest;
 import sloth.basic.http.data.HTTPResponse;
 import sloth.basic.http.data.MethodHTTP;
@@ -110,8 +111,9 @@ public class Main {
     public static void main(String[] args) throws MiddlewareConfigurationException {
         Sloth sloth = new Sloth();
         sloth.activateQoS();
-        sloth.registerInterceptor(new ext());
-        sloth.registerInterceptor(new qos());
+//        sloth.registerAuth(new SimpleAuth());
+//        sloth.registerInterceptor(new ext());
+//        sloth.registerInterceptor(new qos());
         sloth.registerRoutes(new test());
         sloth.init(8080);
     }

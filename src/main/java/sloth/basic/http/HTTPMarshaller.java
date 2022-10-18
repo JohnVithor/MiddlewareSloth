@@ -5,10 +5,12 @@ import sloth.basic.http.data.HTTPRequest;
 import sloth.basic.http.data.HTTPResponse;
 import sloth.basic.http.data.MethodHTTP;
 import sloth.basic.marshaller.Marshaller;
+import sloth.basic.marshaller.UnmarshallResult;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.StringTokenizer;
@@ -33,23 +35,26 @@ public class HTTPMarshaller implements Marshaller<HTTPRequest, HTTPResponse> {
         return httpResponse.toString();
     }
 
-    public HTTPRequest unmarshall(BufferedReader in, InetAddress address) throws IOException, UnmarshalException {
+    public UnmarshallResult<HTTPRequest> unmarshall(BufferedReader in, InetAddress address) throws IOException {
+        UnmarshallResult<HTTPRequest> result = new UnmarshallResult<>();
+        result.exceptionList = new ArrayList<>();
         String headerLine = in.readLine();
         StringTokenizer tokenizer = new StringTokenizer(headerLine);
         String method = tokenizer.nextToken();
         String query = tokenizer.nextToken();
         String version = tokenizer.nextToken();
         if (!version.equals("HTTP/1.1")) {
-            throw new UnmarshalException("Not a valid HTTP version: " + version);
+            result.exceptionList.add(new UnmarshalException("Not a valid HTTP version: " + version));
         }
         String inputLine;
         HashMap<String, String> headers = new HashMap<>();
         while (!(inputLine = in.readLine()).equals("")) {
             String[] splits = inputLine.split(": ");
             if (splits.length != 2) {
-                throw new UnmarshalException("Not a valid HTTP header format: " + inputLine);
+                result.exceptionList.add(new UnmarshalException("Not a valid HTTP header format: " + inputLine));
+            } else {
+                headers.put(splits[0], splits[1]);
             }
-            headers.put(splits[0], splits[1]);
         }
         StringBuilder body = new StringBuilder();
         while(in.ready()){
@@ -67,10 +72,11 @@ public class HTTPMarshaller implements Marshaller<HTTPRequest, HTTPResponse> {
                 query = query.substring(0, query.indexOf("?"));
             }
         } catch (ArrayIndexOutOfBoundsException e) {
-            throw new UnmarshalException("Ill-formed parameters on: " + query);
+            result.exceptionList.add(new UnmarshalException("Ill-formed parameters on: " + query));
         }
-
-        return new HTTPRequest(address.getHostAddress(), MethodHTTP.valueOf(method), query, queryParams, version, headers, body.toString());
+        result.data = new HTTPRequest(address.getHostAddress(), MethodHTTP.valueOf(method), query, queryParams, version, headers, body.toString());
+        result.success = result.exceptionList.isEmpty();
+        return result;
     }
 
 }

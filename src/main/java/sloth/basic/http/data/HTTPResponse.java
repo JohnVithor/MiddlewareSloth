@@ -9,7 +9,7 @@ public class HTTPResponse implements IdentifiedSizeable {
     private final int statusCode;
     private final String statusMessage;
     private final HashMap<String, String> headers;
-    private final String body;
+    private String body;
 
     public HTTPResponse(String version, int statusCode, String statusMessage, HashMap<String, String> headers, String body) {
         this.version = version;
@@ -37,6 +37,10 @@ public class HTTPResponse implements IdentifiedSizeable {
 
     public String getBody() {
         return body;
+    }
+
+    public void setBody(String body) {
+        this.body = body;
     }
 
     @Override

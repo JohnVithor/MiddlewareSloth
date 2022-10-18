@@ -6,6 +6,7 @@ import sloth.basic.extension.protocolplugin.Connection;
 import sloth.basic.invoker.Invoker;
 import sloth.basic.marshaller.Marshaller;
 import sloth.basic.marshaller.IdentifiedSizeable;
+import sloth.basic.marshaller.UnmarshallResult;
 import sloth.basic.qos.QoSData;
 import sloth.basic.qos.QoSObserver;
 
@@ -37,17 +38,20 @@ public class RequestHandler<Request extends IdentifiedSizeable, Response extends
         QoSData<Request, Response> qoSData = qoSObserver.newEvent();
         try {
             Response response;
-            Request request = null;
+            UnmarshallResult<Request> request = null;
             String id = "";
             try {
                 qoSData.unmarshallStart();
                 request = marshaller.unmarshall(connection.getInput(), connection.getInetAddress());
-                id = request.getId();
-                qoSData.setRequest(request);
+                id = request.data.getId();
+                qoSData.setRequest(request.data);
                 qoSData.unmarshallEndAndBeforeInvokeStart();
-                invoker.beforeInvoke(request, qoSObserver.get(id));
+                if (!request.success) {
+                    throw new RemotingException(400, request.getMessage());
+                }
+                invoker.beforeInvoke(request.data, qoSObserver.get(id));
                 qoSData.beforeInvokeEndAndInvokeStart();
-                response = invoker.invoke(request);
+                response = invoker.invoke(request.data);
                 qoSData.invokeEnd();
             } catch (RemotingException e) {
                 qoSData.errorHandleStart();
@@ -64,7 +68,7 @@ public class RequestHandler<Request extends IdentifiedSizeable, Response extends
                 qoSData.errorHandleEnd();
             }
             qoSData.afterInvokeStart();
-            invoker.afterInvoke(request, response, qoSObserver.get(id));
+            invoker.afterInvoke(request.data, response, qoSObserver.get(id));
             qoSData.afterInvokeEndAndMarshallStart();
             String responseString = marshaller.marshall(response);
             qoSData.setResponse(response);

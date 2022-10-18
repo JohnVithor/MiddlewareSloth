@@ -8,5 +8,5 @@ import java.net.InetAddress;
 
 public interface Marshaller<Request extends IdentifiedSizeable, Response extends IdentifiedSizeable> {
     String marshall(Response response);
-    Request unmarshall(BufferedReader in, InetAddress address) throws IOException, UnmarshalException;
+    UnmarshallResult<Request> unmarshall(BufferedReader in, InetAddress address) throws IOException;
 }

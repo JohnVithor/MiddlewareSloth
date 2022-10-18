@@ -5,12 +5,12 @@ import sloth.basic.extension.InvocationInterceptor;
 import sloth.basic.extension.RegistrationConfiguration;
 import sloth.basic.http.data.HTTPRequest;
 import sloth.basic.http.data.HTTPResponse;
-import sloth.basic.http.util.RouteInfos;
 import sloth.basic.qos.RouteStats;
 
-import java.util.HashSet;
 
-public interface HTTPAuth extends RegistrationConfiguration<HTTPRequest, HTTPResponse>, InvocationInterceptor<HTTPRequest, HTTPResponse>{
+public interface HTTPAuth
+        extends RegistrationConfiguration<HTTPRequest, HTTPResponse>,
+        InvocationInterceptor<HTTPRequest, HTTPResponse> {
 
     boolean check(String route);
 
@@ -20,14 +20,26 @@ public interface HTTPAuth extends RegistrationConfiguration<HTTPRequest, HTTPRes
     }
     @Override
     default void beforeRequest(HTTPRequest request, RouteStats<HTTPRequest, HTTPResponse> qoSObserver) throws RemotingException {
-        if (check(request.getQuery())){
-            if (!request.getHeaders().containsKey("Authorization")) {
-                throw new RemotingException(403, "Unauthorized");
+        if (request != null && check(request.getQuery())){
+            if (request.getHeaders().containsKey("Authorization")) {
+                String auth = request.getHeaders().get("Authorization");
+                if (auth.equals("ADMIN")) {
+                    return;
+                }
+                // TODO
             }
+            throw new RemotingException(403, "Unauthorized");
         }
     }
     @Override
     default void afterResponse(HTTPRequest request, HTTPResponse response, RouteStats<HTTPRequest, HTTPResponse> qoSObserver) {
-        // EMPTY
+        if (request != null && response != null && request.getQuery().equals("/auth/login")) {
+            response.getHeaders().put("Authorization", response.getBody());
+            response.setBody("");
+            response.getHeaders().put("Content-Length", "0");
+        }
     }
+
+    Credentials authenticate(String username, String password) throws AuthException;
+
 }

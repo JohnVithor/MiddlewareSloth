@@ -49,5 +49,6 @@ public class Sloth {
     public void registerAuth(SimpleAuth auth) {
         invoker.configure(auth);
         invoker.registerInterceptor(auth);
+        invoker.registerRoutes(auth);
     }
 }
