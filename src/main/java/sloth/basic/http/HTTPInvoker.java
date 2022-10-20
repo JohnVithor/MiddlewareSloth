@@ -22,9 +22,7 @@ import sloth.basic.http.util.Route;
 import sloth.basic.http.data.HTTPRequest;
 import sloth.basic.http.data.HTTPResponse;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.Parameter;
+import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Stream;
@@ -59,13 +57,13 @@ public class HTTPInvoker extends Invoker<HTTPRequest, HTTPResponse> {
                     if (value == null) {
                         throw new BadRequestException("Parameter " + name + " not specified");
                     }
-                    params.add(parser.parse(value, p.getType()));
+                    params.add(parser.parseType(value, p.getParameterizedType()));
                 } else if (p.isAnnotationPresent(Body.class)) {
                     // Antes usava try-catch, e não tinha esse if do content-type
                     if (info.content_type().contains("application/json")) {
                         params.add(mapper.readValue(request.getBody(), p.getType()));
                     } else {
-                        params.add(parser.parse(request.getBody(), p.getType()));
+                        params.add(parser.parseType(request.getBody(), p.getParameterizedType()));
                     }
                 }
             }

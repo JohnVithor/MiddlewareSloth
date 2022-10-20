@@ -13,6 +13,7 @@ import sloth.basic.extension.InvocationInterceptor;
 import sloth.basic.http.data.ContentType;
 import sloth.basic.qos.RouteStats;
 
+import java.util.List;
 import java.util.concurrent.atomic.LongAdder;
 
 public class Main {
@@ -70,41 +71,33 @@ public class Main {
     @RequestMapping(path = "teste")
     public static class test {
 
-        public static class testBody {
-            public String field;
+        public static class testBody<T> {
+            public T field;
 
-            public Double value;
-
-            public testBody(String field, Double value) {
-                this.field = field;
-                this.value = value;
+            public testBody() {
             }
 
-            public void setField(String field) {
+            public testBody(T field) {
                 this.field = field;
             }
 
-            public String getField() {
+            public void setField(T field) {
+                this.field = field;
+            }
+
+            public T getField() {
                 return field;
-            }
-
-            public Double getValue() {
-                return value;
-            }
-
-            public void setValue(Double value) {
-                this.value = value;
             }
         }
 
         @MethodMapping(method = MethodHTTP.GET, content_type = ContentType.HTML)
-        public Integer testando(@Param(name = "p1") Integer test) {
-            return test+test;
+        public Integer testando(@Param(name = "p1") List<Integer> test) {
+            return test.size();
         }
 
         @MethodMapping(method = MethodHTTP.POST, content_type = ContentType.JSON)
-        public testBody testando(@Param(name = "p1") Double test, @Body String asd) {
-            return new testBody(asd, test);
+        public testBody<Integer> testando(@Body testBody<Integer> asd) {
+            return new testBody<>(asd.field);
         }
     }
 
