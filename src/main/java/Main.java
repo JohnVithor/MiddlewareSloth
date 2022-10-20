@@ -111,6 +111,7 @@ public class Main {
     public static void main(String[] args) throws MiddlewareConfigurationException {
         Sloth sloth = new Sloth();
         sloth.activateQoS();
+        sloth.activateReqResLogging();
 //        sloth.registerAuth(new SimpleAuth());
 //        sloth.registerInterceptor(new ext());
 //        sloth.registerInterceptor(new qos());

@@ -4,6 +4,7 @@ import sloth.basic.error.MiddlewareConfigurationException;
 import sloth.basic.extension.Configuration;
 import sloth.basic.extension.RegistrationConfiguration;
 import sloth.basic.extension.auth.SimpleAuth;
+import sloth.basic.extension.logging.HTTPRequestResponseLogger;
 import sloth.basic.extension.protocolplugin.Protocol;
 import sloth.basic.http.HTTPQoSObserver;
 import sloth.basic.http.error.HTTPErrorHandler;
@@ -17,6 +18,8 @@ import sloth.basic.protocols.TCPProtocol;
 import sloth.basic.qos.DisabledQoSObserver;
 import sloth.basic.qos.QoSObserver;
 
+import java.io.*;
+
 
 public class Sloth {
     private final ServerRequestHandler<HTTPRequest, HTTPResponse> serverRequestHandler = new ServerRequestHandler<>();
@@ -28,6 +31,21 @@ public class Sloth {
     public void activateQoS() {
         qoSObserver = new HTTPQoSObserver();
         invoker.registerRoutes(qoSObserver);
+    }
+
+    public void activateReqResLogging() {
+        try {
+            File yourFile = new File("./logging.logging");
+            yourFile.createNewFile();
+            FileOutputStream oFile = new FileOutputStream(yourFile, true);
+            HTTPRequestResponseLogger logging = new HTTPRequestResponseLogger(
+                    new BufferedWriter(new OutputStreamWriter(oFile))
+            );
+            logging.init();
+            invoker.registerInterceptor(logging);
+        } catch (IOException e) {
+            System.err.println("Cannot create logging file");
+        }
     }
 
     public void init(int port, Protocol protocol) {
