@@ -1,10 +1,9 @@
 package sloth.basic;
 
 import sloth.basic.error.MiddlewareConfigurationException;
-import sloth.basic.extension.Configuration;
-import sloth.basic.extension.RegistrationConfiguration;
 import sloth.basic.extension.auth.SimpleAuth;
 import sloth.basic.extension.logging.HTTPRequestResponseLogger;
+import sloth.basic.extension.logging.Logger;
 import sloth.basic.extension.protocolplugin.Protocol;
 import sloth.basic.http.HTTPQoSObserver;
 import sloth.basic.http.error.HTTPErrorHandler;
@@ -36,11 +35,15 @@ public class Sloth {
     public void activateReqResLogging() {
         try {
             HTTPRequestResponseLogger logging = new HTTPRequestResponseLogger("./logging.output");
-            logging.init();
-            invoker.registerInterceptor(logging);
+            activateCustomLogging(logging);
         } catch (IOException e) {
-            System.err.println("Cannot start logging");
+            System.err.println("Cannot start default logging");
         }
+    }
+
+    public void activateCustomLogging(Logger<HTTPRequest, HTTPResponse> logger) {
+        logger.init();
+        invoker.registerInterceptor(logger);
     }
 
     public void init(int port, Protocol protocol) {

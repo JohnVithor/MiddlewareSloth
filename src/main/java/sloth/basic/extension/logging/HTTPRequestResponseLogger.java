@@ -8,16 +8,10 @@ import sloth.basic.qos.RouteStats;
 
 import java.io.*;
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.LinkedTransferQueue;
 
-public class HTTPRequestResponseLogger implements InvocationInterceptor<HTTPRequest, HTTPResponse> {
+public class HTTPRequestResponseLogger extends Logger<HTTPRequest, HTTPResponse> {
 
     private final BufferedWriter writer;
-
-    private final LinkedBlockingQueue<String> queue = new LinkedBlockingQueue<>(1000);
 
     public HTTPRequestResponseLogger(String filename) throws IOException {
         File yourFile = new File(filename);
@@ -28,20 +22,6 @@ public class HTTPRequestResponseLogger implements InvocationInterceptor<HTTPRequ
         }
         FileOutputStream oFile = new FileOutputStream(yourFile, true);
         this.writer = new BufferedWriter(new OutputStreamWriter(oFile));
-    }
-
-    public void init() {
-        Thread.ofVirtual().start(() -> {
-            while (true) {
-                try {
-                    String message = queue.take();
-                    writer.write(message);
-                    writer.flush();
-                } catch (InterruptedException | IOException e) {
-                    System.err.println("Logger interrompido: " + e.getMessage());
-                }
-            }
-        });
     }
 
     @Override
@@ -92,5 +72,11 @@ public class HTTPRequestResponseLogger implements InvocationInterceptor<HTTPRequ
         } catch (InterruptedException e) {
             System.err.println("Não foi possivel realizar o logging devido a: " + e.getMessage());
         }
+    }
+
+    @Override
+    public void write(String message) throws IOException {
+        writer.write(message);
+        writer.flush();
     }
 }
