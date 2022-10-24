@@ -6,8 +6,7 @@ import sloth.basic.http.data.HTTPRequest;
 import sloth.basic.http.data.HTTPResponse;
 import sloth.basic.qos.RouteStats;
 
-import java.io.BufferedWriter;
-import java.io.IOException;
+import java.io.*;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -20,8 +19,15 @@ public class HTTPRequestResponseLogger implements InvocationInterceptor<HTTPRequ
 
     private final LinkedBlockingQueue<String> queue = new LinkedBlockingQueue<>(1000);
 
-    public HTTPRequestResponseLogger(BufferedWriter writer) {
-        this.writer = writer;
+    public HTTPRequestResponseLogger(String filename) throws IOException {
+        File yourFile = new File(filename);
+        if(yourFile.createNewFile()) {
+            System.err.println("Logging File created");
+        } else {
+            System.err.println("Logging File already exists");
+        }
+        FileOutputStream oFile = new FileOutputStream(yourFile, true);
+        this.writer = new BufferedWriter(new OutputStreamWriter(oFile));
     }
 
     public void init() {

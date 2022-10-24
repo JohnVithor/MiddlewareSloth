@@ -35,16 +35,11 @@ public class Sloth {
 
     public void activateReqResLogging() {
         try {
-            File yourFile = new File("./logging.logging");
-            yourFile.createNewFile();
-            FileOutputStream oFile = new FileOutputStream(yourFile, true);
-            HTTPRequestResponseLogger logging = new HTTPRequestResponseLogger(
-                    new BufferedWriter(new OutputStreamWriter(oFile))
-            );
+            HTTPRequestResponseLogger logging = new HTTPRequestResponseLogger("./logging.output");
             logging.init();
             invoker.registerInterceptor(logging);
         } catch (IOException e) {
-            System.err.println("Cannot create logging file");
+            System.err.println("Cannot start logging");
         }
     }
 
