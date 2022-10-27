@@ -8,6 +8,6 @@ public class HTTPQoSData extends QoSData<HTTPRequest, HTTPResponse> {
 
     @Override
     public String getId() {
-        return getRequest().getQuery();
+        return getRequest().query();
     }
 }

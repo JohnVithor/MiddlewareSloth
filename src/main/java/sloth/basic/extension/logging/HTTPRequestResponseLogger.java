@@ -1,7 +1,6 @@
 package sloth.basic.extension.logging;
 
 import sloth.basic.error.RemotingException;
-import sloth.basic.extension.InvocationInterceptor;
 import sloth.basic.http.data.HTTPRequest;
 import sloth.basic.http.data.HTTPResponse;
 import sloth.basic.qos.RouteStats;
@@ -39,24 +38,24 @@ public class HTTPRequestResponseLogger extends Logger<HTTPRequest, HTTPResponse>
         try {
             StringBuilder builder = new StringBuilder();
             builder.append("Request from: ")
-                    .append(httpRequest.getRequestor())
+                    .append(httpRequest.requestor())
                     .append(" using ")
-                    .append(httpRequest.getMethod())
+                    .append(httpRequest.method())
                     .append(" to ")
-                    .append(httpRequest.getQuery())
+                    .append(httpRequest.query())
                     .append("\n");
-            if(!httpRequest.getQueryParams().isEmpty()){
+            if(!httpRequest.queryParams().isEmpty()){
                 builder.append("With Params:\n");
-                for (Map.Entry<String, String> e: httpRequest.getQueryParams().entrySet()) {
+                for (Map.Entry<String, String> e: httpRequest.queryParams().entrySet()) {
                     builder.append(e.getKey())
                             .append(" : ")
                             .append(e.getValue())
                             .append("\n");
                 }
             }
-            if(!httpRequest.getBody().isEmpty()){
+            if(!httpRequest.body().isEmpty()){
                 builder.append("With Body:\n")
-                        .append(httpRequest.getBody());
+                        .append(httpRequest.body());
             }
             builder.append("Had Response: ")
                     .append(httpResponse.getStatusCode())

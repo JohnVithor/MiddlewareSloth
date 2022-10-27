@@ -1,7 +1,6 @@
 package sloth.basic.handler;
 
 import sloth.basic.error.*;
-import sloth.basic.error.RemotingException;
 import sloth.basic.extension.protocolplugin.Connection;
 import sloth.basic.invoker.Invoker;
 import sloth.basic.marshaller.Marshaller;
@@ -11,7 +10,6 @@ import sloth.basic.qos.QoSData;
 import sloth.basic.qos.QoSObserver;
 
 import java.io.*;
-import java.net.Socket;
 
 public class RequestHandler<Request extends IdentifiedSizeable, Response extends IdentifiedSizeable> implements Runnable {
 

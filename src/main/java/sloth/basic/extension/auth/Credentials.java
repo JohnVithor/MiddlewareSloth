@@ -4,7 +4,7 @@ import java.util.List;
 
 public interface Credentials {
 
-    String getUsername();
-    List<String> getPermissions();
+    String username();
+    List<String> permissions();
     String getToken();
 }

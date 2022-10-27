@@ -20,9 +20,9 @@ public interface HTTPAuth
     }
     @Override
     default void beforeRequest(HTTPRequest request, RouteStats<HTTPRequest, HTTPResponse> qoSObserver) throws RemotingException {
-        if (request != null && check(request.getQuery())){
-            if (request.getHeaders().containsKey("Authorization")) {
-                String auth = request.getHeaders().get("Authorization");
+        if (request != null && check(request.query())){
+            if (request.headers().containsKey("Authorization")) {
+                String auth = request.headers().get("Authorization");
                 if (auth.equals("ADMIN")) {
                     return;
                 }
@@ -33,7 +33,7 @@ public interface HTTPAuth
     }
     @Override
     default void afterResponse(HTTPRequest request, HTTPResponse response, RouteStats<HTTPRequest, HTTPResponse> qoSObserver) {
-        if (request != null && response != null && request.getQuery().equals("/auth/login")) {
+        if (request != null && response != null && request.query().equals("/auth/login")) {
             response.getHeaders().put("Authorization", response.getBody());
             response.setBody("");
             response.getHeaders().put("Content-Length", "0");

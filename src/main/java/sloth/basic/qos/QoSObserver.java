@@ -1,8 +1,5 @@
 package sloth.basic.qos;
 
-import sloth.basic.extension.InvocationInterceptor;
-import sloth.basic.http.data.HTTPRequest;
-import sloth.basic.http.data.HTTPResponse;
 import sloth.basic.marshaller.IdentifiedSizeable;
 
 import java.util.concurrent.ConcurrentHashMap;

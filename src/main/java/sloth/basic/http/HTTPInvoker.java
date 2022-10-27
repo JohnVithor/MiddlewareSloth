@@ -16,7 +16,6 @@ import sloth.basic.http.error.InternalServerErrorException;
 import sloth.basic.http.error.MethodNotAllowedException;
 import sloth.basic.http.error.NotFoundException;
 import sloth.basic.http.util.RouteInfos;
-import sloth.basic.extension.InvocationInterceptor;
 import sloth.basic.invoker.Invoker;
 import sloth.basic.http.util.Route;
 import sloth.basic.http.data.HTTPRequest;
@@ -25,7 +24,6 @@ import sloth.basic.http.data.HTTPResponse;
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Stream;
 
 public class HTTPInvoker extends Invoker<HTTPRequest, HTTPResponse> {
 
@@ -36,13 +34,13 @@ public class HTTPInvoker extends Invoker<HTTPRequest, HTTPResponse> {
 
     @Override
     public HTTPResponse invoke(HTTPRequest request) throws RemotingException {
-        RouteInfos methods = routes.get(request.getQuery());
+        RouteInfos methods = routes.get(request.query());
         if (methods == null) {
-            throw new NotFoundException("Route : " + request.getQuery() + " not found");
+            throw new NotFoundException("Route : " + request.query() + " not found");
         }
-        Optional<Route> found = methods.get(request.getMethod());
+        Optional<Route> found = methods.get(request.method());
         if (found.isEmpty()) {
-            throw new MethodNotAllowedException("Method: " + request.getMethod() + " not supported on " + request.getQuery());
+            throw new MethodNotAllowedException("Method: " + request.method() + " not supported on " + request.query());
         }
         return execute(found.get(), request);
     }
@@ -53,7 +51,7 @@ public class HTTPInvoker extends Invoker<HTTPRequest, HTTPResponse> {
             for (Parameter p : info.method().getParameters()) {
                 if (p.isAnnotationPresent(Param.class)) {
                     String name = p.getAnnotation(Param.class).name();
-                    String value = request.getQueryParams().get(name);
+                    String value = request.queryParams().get(name);
                     if (value == null) {
                         throw new BadRequestException("Parameter " + name + " not specified");
                     }
@@ -61,9 +59,9 @@ public class HTTPInvoker extends Invoker<HTTPRequest, HTTPResponse> {
                 } else if (p.isAnnotationPresent(Body.class)) {
                     // Antes usava try-catch, e não tinha esse if do content-type
                     if (info.content_type().contains("application/json")) {
-                        params.add(mapper.readValue(request.getBody(), p.getType()));
+                        params.add(mapper.readValue(request.body(), p.getType()));
                     } else {
-                        params.add(parser.parseType(request.getBody(), p.getParameterizedType()));
+                        params.add(parser.parseType(request.body(), p.getParameterizedType()));
                     }
                 }
             }

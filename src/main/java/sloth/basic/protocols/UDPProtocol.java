@@ -6,7 +6,6 @@ import sloth.basic.extension.protocolplugin.Protocol;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.ServerSocket;
 
 public class UDPProtocol implements Protocol {
 
