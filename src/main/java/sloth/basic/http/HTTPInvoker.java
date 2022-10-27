@@ -21,6 +21,8 @@ import sloth.basic.http.util.Route;
 import sloth.basic.http.data.HTTPRequest;
 import sloth.basic.http.data.HTTPResponse;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -69,12 +71,20 @@ public class HTTPInvoker extends Invoker<HTTPRequest, HTTPResponse> {
             return new HTTPResponse("HTTP/1.1",200, "OK",
                     HTTPResponse.buildBasicHeaders(response, info.content_type()), response);
         } catch (IllegalAccessException e) {
-            // teoricamente não pode acontecer, dado que o acesso ao método foi setado como true
-            throw new InternalServerErrorException(e.getMessage());
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            throw new InternalServerErrorException(e.getMessage() == null?sw.toString():e.getMessage());
         } catch (InvocationTargetException e) {
-            throw new InternalServerErrorException(e.getMessage());
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            throw new InternalServerErrorException(e.getMessage() == null?sw.toString():e.getMessage());
         } catch (TypeParserException | JsonProcessingException e) {
-            throw new BadRequestException(e.getMessage());
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            e.printStackTrace(pw);
+            throw new BadRequestException(e.getMessage() == null?sw.toString():e.getMessage());
         }
     }
 

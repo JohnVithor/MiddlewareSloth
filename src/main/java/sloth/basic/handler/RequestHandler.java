@@ -59,9 +59,11 @@ public class RequestHandler<Request extends IdentifiedSizeable, Response extends
             } catch (Exception e) {
                 qoSData.errorHandleStart();
                 qoSData.addError(e);
-                e.printStackTrace();
+                StringWriter sw = new StringWriter();
+                PrintWriter pw = new PrintWriter(sw);
+                e.printStackTrace(pw);
                 response = errorHandler.build(
-                        new RemotingException(errorHandler.getDefaultErrorCode(), e.getMessage())
+                        new RemotingException(errorHandler.getDefaultErrorCode(), e.getMessage()==null?sw.toString():e.getMessage())
                 );
                 qoSData.errorHandleEnd();
             }

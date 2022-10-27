@@ -23,7 +23,7 @@ public record HTTPRequest(String requestor, MethodHTTP method, String query, Map
 
     @Override
     public long getSize() {
-        return body.length();
+        return body == null?0:body.length();
     }
 
     @Override

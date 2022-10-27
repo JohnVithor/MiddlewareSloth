@@ -84,7 +84,7 @@ public class HTTPResponse implements IdentifiedSizeable {
     }
     @Override
     public long getSize() {
-        return body.length();
+        return body == null?0:body.length();
     }
 
     @Override

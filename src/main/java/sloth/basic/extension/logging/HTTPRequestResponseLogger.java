@@ -53,7 +53,7 @@ public class HTTPRequestResponseLogger extends Logger<HTTPRequest, HTTPResponse>
                             .append("\n");
                 }
             }
-            if(!httpRequest.body().isEmpty()){
+            if(httpRequest.body() != null && !httpRequest.body().isEmpty()){
                 builder.append("With Body:\n")
                         .append(httpRequest.body());
             }
@@ -62,7 +62,7 @@ public class HTTPRequestResponseLogger extends Logger<HTTPRequest, HTTPResponse>
                     .append(" ")
                     .append(httpResponse.getStatusMessage())
                     .append("\n");
-            if(!httpResponse.getBody().isEmpty()){
+            if(httpResponse.getBody() != null && !httpResponse.getBody().isEmpty()){
                 builder.append("With Body:\n")
                         .append(httpResponse.getBody())
                         .append("\n");
